@@ -1,0 +1,19 @@
+* {
+	font-family: arial, sans-serif;
+	font-size: 10pt;
+	color: #bbbbbb;
+	margin: 0;
+	padding: 0;
+	text-decoration: none;
+}
+
+/* Prevent slected text from disappearing */
+::selection {
+	background: rgba(0,0,0,0);
+}
+
+html,body {
+	background-color: transparent;
+	height: 100%;
+	overflow: hidden;
+}

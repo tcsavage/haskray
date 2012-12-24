@@ -5,3 +5,7 @@ cabal-dev
 *.chi
 *.chs.h
 .virthualenv
+*.framework
+SourceGraph
+.DS_store
+icons
