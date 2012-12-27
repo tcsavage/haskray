@@ -9,3 +9,5 @@ cabal-dev
 SourceGraph
 .DS_store
 icons
+
+*.ppm
