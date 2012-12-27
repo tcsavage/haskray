@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Main where
 
 import HaskRay
@@ -10,6 +12,7 @@ import qualified Data.ByteString.Char8 as B
 import Control.Concurrent.Async
 import Control.Monad
 import Text.Printf
+import System.Remote.Monitoring
 
 import GLDisplay
 import Settings
@@ -126,6 +129,7 @@ readArgs args = error ("Unrecognised arguments: " ++ show args)
 main :: IO ()
 --main = mapM_ testAnim (zip [-10,-9.75..10] [1..])
 main = do
+	forkServer "localhost" 8000
 	gvi <- isGraphvizInstalled
 	unless gvi $ putStrLn "WARN: Graphviz isn't installed. Not all functionality will be available."
 

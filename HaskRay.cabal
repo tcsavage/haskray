@@ -52,6 +52,7 @@ executable HaskRay
     base ==4.5.*,
     HaskRay,
     awesomium,
+    ekg,
     bytestring ==0.9.*,
     split ==0.1.*,
     parallel ==3.2.*,
