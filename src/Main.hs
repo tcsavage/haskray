@@ -12,7 +12,6 @@ import qualified Data.ByteString.Char8 as B
 import Control.Concurrent.Async
 import Control.Monad
 import Text.Printf
-import System.Remote.Monitoring
 
 import GLDisplay
 import Settings
@@ -94,7 +93,7 @@ objects = [Object (Plane (normalize (Vector3 0 (-1) 0)) 5) (Diffuse (Vector3 0.8
         ,Object (Sphere (Vector3 8 4 4) 2) (Diffuse (Vector3 1 1 1))
         --,Object (Sphere (Vector3 2 (-15) 2) 1) (Emissive (Vector3 1 0 0) 400)
         ,Object (Sphere (Vector3 (-8) (-15) 2) 1) (Emissive (Vector3 1 0 0) 400)
-        ,Object axes (Diffuse (Vector3 1 0.5 0))
+        --,Object axes (Diffuse (Vector3 1 0.5 0))
         ]
 
 camera :: View
@@ -144,7 +143,6 @@ main = do
         Just filepath -> do
             putStrLn $ "Rendering (seed: " ++ (show randomSeed) ++ ")..."
             when (getOpenGLView settings) $ glDisp rsettings scene pbuf
-            unless (getOpenGLView settings) $ putStrLn "Starting monitor server on localhost:8000" >> (void $ forkServer "localhost" 8000)
             savePpm filepath pbuf
         otherwise -> error "No output file given"
 

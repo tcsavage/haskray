@@ -2,6 +2,7 @@ module GLDisplay.Util where
 
 import HaskRay
 
+import Control.Parallel.Strategies (using, parList, rseq)
 import Foreign.C.Types
 import Foreign.Marshal.Array
 import Foreign.Ptr
@@ -19,20 +20,22 @@ toGLVert3 (Vector3 x y z) = GLT.Vertex3 (CDouble x) (CDouble y) (CDouble z)
 
 toGLColor4 :: Colour -> Color4 GLfloat
 toGLColor4 (Vector3 r g b) = Color4 (CFloat $ dtof r) (CFloat $ dtof g) (CFloat $ dtof b) 1
-	where
-		dtof :: Double -> Float
-		dtof n = (uncurry encodeFloat) (decodeFloat n)
+    where
+        dtof :: Double -> Float
+        dtof n = (uncurry encodeFloat) (decodeFloat n)
+
+colourToBytes :: Colour -> [CChar]
+colourToBytes (Vector3 r g b) = [toByte r, toByte g, toByte b, toByte 1]
+    where
+        toByte = CChar . toInt
+        toInt n = fromIntegral . floor $ (clamp n ** (1/2.2)) * 255 + 0.5
+        clamp n
+            | n < 0 = 0
+            | n > 1 = 1
+            | otherwise = n
 
 coloursToBytes :: [Colour] -> [CChar]
-coloursToBytes [] = []
-coloursToBytes (Vector3 r g b : xs) = toByte r : toByte g : toByte b : toByte 0 : coloursToBytes xs
-	where
-		toByte = CChar . toInt
-		toInt n = fromIntegral . floor $ (clamp n ** (1/2.2)) * 255 + 0.5
-		clamp n
-			| n < 0 = 0
-			| n > 1 = 1
-			| otherwise = n
+coloursToBytes cs = concat (map colourToBytes cs `using` parList rseq)
 
 makeColourArray :: [Colour] -> IO (Ptr CChar)
 makeColourArray = newArray . coloursToBytes
