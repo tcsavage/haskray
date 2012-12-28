@@ -43,7 +43,7 @@ library
     HaskRay.Vector.Simple
     HaskRay.Vector.Mid
     HaskRay.Vector.Advanced
-  build-depends:       base ==4.5.*, bytestring ==0.9.*, split ==0.1.*, parallel ==3.2.*, random, mtl, MonadRandom, containers
+  build-depends:       base ==4.5.*, bytestring ==0.9.*, split ==0.1.*, parallel ==3.2.*, random, mtl, MonadRandom, containers, time
   hs-source-dirs:      src
 
 executable HaskRay
@@ -60,6 +60,7 @@ executable HaskRay
     random,
     MonadRandom,
     containers,
+    time,
     GLUT >= 2.3,
     OpenGL >=2.6,
     async,
@@ -78,3 +79,19 @@ test-suite properties
   main-is: properties.hs
   build-depends: base, QuickCheck
   hs-source-dirs: testsuite, src
+
+executable haskray-benchmarks
+  main-is:             Benchmarks.hs
+  hs-source-dirs:      benchmarks
+  ghc-options:         -threaded -eventlog -rtsopts -O2
+  build-depends:
+    base ==4.5.*,
+    HaskRay,
+    split ==0.1.*,
+    parallel ==3.2.*,
+    random,
+    mtl,
+    MonadRandom,
+    containers,
+    time,
+    criterion
