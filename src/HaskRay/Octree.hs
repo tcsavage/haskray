@@ -8,6 +8,7 @@ import HaskRay.Geometry
 
 import Control.Applicative
 import Control.Monad
+import Control.Parallel
 import Data.List
 
 import Debug.Trace
@@ -22,7 +23,7 @@ data Octree = Leaf Vec3 Scalar [Object] | Branch { pos :: Vec3, size :: Scalar, 
 type ObjectStructure = ([Object], Octree, [Object])
 
 closestIntersectObStruct :: Ray -> ObjectStructure -> Maybe (Scalar, Intersection, Object)
-closestIntersectObStruct ray (inf, oct, _) = closest closestInf closestFin
+closestIntersectObStruct ray (inf, oct, _) = (closestInf `par` closestFin) `pseq` (closest closestInf closestFin)
     where
         closest Nothing x = x
         closest x Nothing = x
