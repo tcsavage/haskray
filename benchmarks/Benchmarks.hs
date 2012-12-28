@@ -6,6 +6,8 @@ import Criterion.Main
 
 import System.Random
 
+mesh3 = (Mesh (Vector3 0 (-5) (-5)) [(Triangle (Vertex (Vector3 (-2.165064) (1.113091) (1.800000)) (Vector3 (-0.695334) (0.553667) (0.458174)) (Vector2 0 0)) (Vertex (Vector3 (-0.000000) (-0.136910) (-8.200000)) (Vector3 (0.000000) (0.025117) (-0.999664)) (Vector2 0 0)) (Vertex (Vector3 (-0.000000) (-2.636908) (1.800001)) (Vector3 (0.000000) (-0.884854) (0.465835)) (Vector2 0 0))), (Triangle (Vertex (Vector3 (-0.000000) (-2.636908) (1.800001)) (Vector3 (0.000000) (-0.884854) (0.465835)) (Vector2 0 0)) (Vertex (Vector3 (-0.000000) (-0.136910) (-8.200000)) (Vector3 (0.000000) (0.025117) (-0.999664)) (Vector2 0 0)) (Vertex (Vector3 (2.165063) (1.113092) (1.800000)) (Vector3 (0.695334) (0.553667) (0.458174)) (Vector2 0 0))), (Triangle (Vertex (Vector3 (-0.000000) (0.352051) (1.800000)) (Vector3 (0.000000) (0.631611) (0.775262)) (Vector2 0 0)) (Vertex (Vector3 (-0.000000) (-0.136910) (-8.200000)) (Vector3 (0.000000) (0.025117) (-0.999664)) (Vector2 0 0)) (Vertex (Vector3 (-2.165064) (1.113091) (1.800000)) (Vector3 (-0.695334) (0.553667) (0.458174)) (Vector2 0 0))), (Triangle (Vertex (Vector3 (-0.000000) (-2.636908) (1.800001)) (Vector3 (0.000000) (-0.884854) (0.465835)) (Vector2 0 0)) (Vertex (Vector3 (-0.000000) (0.352051) (1.800000)) (Vector3 (0.000000) (0.631611) (0.775262)) (Vector2 0 0)) (Vertex (Vector3 (-2.165064) (1.113091) (1.800000)) (Vector3 (-0.695334) (0.553667) (0.458174)) (Vector2 0 0))), (Triangle (Vertex (Vector3 (-0.000000) (-0.136910) (-8.200000)) (Vector3 (0.000000) (0.025117) (-0.999664)) (Vector2 0 0)) (Vertex (Vector3 (-0.000000) (0.352051) (1.800000)) (Vector3 (0.000000) (0.631611) (0.775262)) (Vector2 0 0)) (Vertex (Vector3 (2.165063) (1.113092) (1.800000)) (Vector3 (0.695334) (0.553667) (0.458174)) (Vector2 0 0))), (Triangle (Vertex (Vector3 (-0.000000) (0.352051) (1.800000)) (Vector3 (0.000000) (0.631611) (0.775262)) (Vector2 0 0)) (Vertex (Vector3 (-0.000000) (-2.636908) (1.800001)) (Vector3 (0.000000) (-0.884854) (0.465835)) (Vector2 0 0)) (Vertex (Vector3 (2.165063) (1.113092) (1.800000)) (Vector3 (0.695334) (0.553667) (0.458174)) (Vector2 0 0)))])
+
 objects :: [Object]
 objects = [Object (Plane (normalize (Vector3 0 (-1) 0)) 5) (Diffuse (Vector3 0.8 0.8 0.8))
         ,Object (Plane (normalize (Vector3 0 (1) 0)) 18) (Diffuse (Vector3 0.8 0.8 0.8))
@@ -17,7 +19,7 @@ objects = [Object (Plane (normalize (Vector3 0 (-1) 0)) 5) (Diffuse (Vector3 0.8
         ,Object (Sphere (Vector3 (-8) 0 8) 5) (Diffuse (Vector3 0 1 0))
         ,Object (Sphere (Vector3 8 3 4) 2) (Diffuse (Vector3 1 1 0))
         ,Object (Sphere (Vector3 (-8) (-15) 2) 1) (Emissive (Vector3 1 0 0) 400)
-        --,Object axes (Diffuse (Vector3 1 0.5 0))
+        ,Object mesh3 (Diffuse (Vector3 1 0.5 0))
         ]
 
 camera :: View
@@ -38,6 +40,6 @@ main = do
     defaultMain
         [bgroup "render"
             [bench "render" $ whnf (\s -> render settings s) scene
-            ,bench "render (unopt)" $ whnf (\s -> render settings s) scene
+            ,bench "render (unopt)" $ whnf (\s -> renderUnOpt settings s) scene
             ]
         ]
