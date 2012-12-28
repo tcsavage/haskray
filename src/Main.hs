@@ -86,14 +86,13 @@ objects = [Object (Plane (normalize (Vector3 0 (-1) 0)) 5) (Diffuse (Vector3 0.8
         ,Object (Plane (normalize (Vector3 1 0 0)) (14)) (Diffuse (Vector3 0.8 0 0))
         ,Object (Plane (normalize (Vector3 (-1) 0 0)) (14)) (Diffuse (Vector3 0 0.8 0))
         ,Object (Plane (normalize (Vector3 0 0 (-1))) (18)) (Diffuse (Vector3 0.8 0.8 0.8))
-        --,Object (Sphere (Vector3 1 1 1) 3) (Transmissive 1.05 0.9)
+        ,Object (Sphere (Vector3 1 1 1) 3) (Transmissive 1.05 0.9)
         ,Object (Sphere (Vector3 5 1 10) 4) (Reflective)
         ,Object (Sphere (Vector3 (-8) 0 8) 5) (Diffuse (Vector3 0 1 0))
         ,Object (Sphere (Vector3 8 3 4) 2) (Diffuse (Vector3 1 1 0))
-        ,Object (Sphere (Vector3 8 4 4) 2) (Diffuse (Vector3 1 1 1))
         --,Object (Sphere (Vector3 2 (-15) 2) 1) (Emissive (Vector3 1 0 0) 400)
         ,Object (Sphere (Vector3 (-8) (-15) 2) 1) (Emissive (Vector3 1 0 0) 400)
-        --,Object axes (Diffuse (Vector3 1 0.5 0))
+        ,Object axes (Diffuse (Vector3 1 0.5 0))
         ]
 
 camera :: View
