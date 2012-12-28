@@ -49,6 +49,7 @@ import HaskRay.RayTree
 import HaskRay.RayTree.String
 import HaskRay.Parser
 import HaskRay.Scene
+import HaskRay.Monad
 
 -- | Simple pixel buffer type.
 data PixBuf = PixBuf (Int, Int) ![Colour] deriving (Show, Eq)
@@ -74,14 +75,16 @@ render settings@(Settings w h _ rand) (Scene os view) = PixBuf (w, h) pixels
     where
         obs = mkObStruct os
         sampleRays = makeCameraRays settings view -- [[Ray]]
-        pixels = (flip evalRand) rand $ sequence (map (\x -> tracePixel obs x >>= (return . evalPixel)) sampleRays `using` parList rseq)
+        --pixels = (flip evalRand) rand $ sequence (map (\x -> tracePixel obs x >>= (return . evalPixel)) sampleRays `using` parList rseq)
+        pixels = runRender (sequence (map (\x -> tracePixel x >>= (return . evalPixel)) sampleRays `using` parList rseq)) obs rand
 
 getPixelForest :: Settings -> Scene -> [Pixel]
 getPixelForest settings@(Settings _ _ _ rand) (Scene os view) = forest
     where
         obs = mkObStruct os
         sampleRays = makeCameraRays settings view
-        forest = (flip evalRand) rand $ mapM (tracePixel obs) sampleRays
+        --forest = (flip evalRand) rand $ mapM (tracePixel obs) sampleRays
+        forest = runRender (mapM tracePixel sampleRays) obs rand
 
 -- | Return a textual representation of the ray tree for a given pixel (instead of rendering).
 examineTreeAt :: Settings -> Scene -> (Int, Int) -> String
@@ -89,4 +92,5 @@ examineTreeAt settings@(Settings w _ _ rand) (Scene os view) (x, y) = treeString
     where
         obs = mkObStruct os
         sampleRays = makeCameraRays settings view
-        tree = (flip evalRand) rand $ tracePixel obs (sampleRays !! (y*w + x))
+        --tree = (flip evalRand) rand $ tracePixel obs (sampleRays !! (y*w + x))
+        tree = runRender (tracePixel $ sampleRays !! (y*w + x)) obs rand

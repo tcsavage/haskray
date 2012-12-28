@@ -15,6 +15,7 @@ import HaskRay.Vector
 import HaskRay.Material
 import HaskRay.Light
 import HaskRay.Octree
+import HaskRay.Monad
 
 import System.Random
 import Control.Monad.Random
@@ -37,8 +38,9 @@ data Sample = Background                       -- ^ The ray hit nothing. Evaluat
 data Shadow = Shadow Colour deriving (Show, Eq)
 
 -- | Builds a ray tree for a pixel.
-tracePixel :: ObjectStructure -> [Ray] -> Rand StdGen Pixel
-tracePixel obs rays = mapM (traceSample obs) rays >>= (return . Pixel)
+tracePixel :: [Ray] -> Render Pixel
+tracePixel rays = do
+	mapM (traceSample) rays >>= (return . Pixel)
 
 -- | Evaluates the ray tee under a pixel to determine a final 'Colour' value.
 evalPixel :: Pixel -> Colour
@@ -47,19 +49,24 @@ evalPixel (Pixel samples) = scale (1/(fromIntegral $ length samples)) $ foldr ad
 		sampleColours = map (clampColour . evalSample) samples
 		correct col = scale (0.25) (clampColour col)
 
-traceSample :: ObjectStructure -> Ray -> Rand StdGen Sample
-traceSample obs ray = procIntersection $ closestIntersectOb ray os
+traceSample :: Ray -> Render Sample
+traceSample ray = do
+	obs <- ask
+	let os = getObjects obs ray
+	procIntersection $ closestIntersectObStruct ray obs
 	where
-		os = getObjects obs ray
 		procIntersection Nothing = return Background
-		procIntersection (Just (_, i@(Intersection norm point ray material), ob)) = procMaterial material i ob
-		procMaterial (Diffuse col) i _ = do
-			light <- mapM (traceLight obs i) lights
+		procIntersection (Just (_, i@(Intersection norm point ray material), ob)) = do
+			obs <- ask
+			procMaterial obs material i ob
+		procMaterial obs (Diffuse col) i _ = do
+			obs <- ask
+			light <- mapM (traceLight i) $ lights obs
 			return $ Diff col light Dead
-		procMaterial (Emissive col _) i _ = return $ Emm col
-		procMaterial (Reflective) i _ = traceReflection obs i
-		procMaterial (Transmissive _ _) i ob = traceTransmission obs i ob
-		lights = filter isEmissive os
+		procMaterial obs (Emissive col _) i _ = return $ Emm col
+		procMaterial obs (Reflective) i _ = traceReflection i
+		procMaterial obs (Transmissive _ _) i ob = traceTransmission i ob
+		lights obs = filter isEmissive (getObjects obs ray)
 		notLight (_, (Intersection _ _ _ m)) = case m of
 			(Emissive _ _) -> False
 			otherwise -> True
@@ -78,23 +85,27 @@ evalSample (Refraction trans ref mix) = t `add` r
 		t = scale amix $ evalSample trans
 		r = scale omix $ evalSample ref
 
-traceLight :: ObjectStructure -> Intersection -> Object -> Rand StdGen Shadow
-traceLight obs (Intersection norm point (Ray origin dir) (Diffuse colour)) lo@(Object light matfun) = do
-	fact <- doLighting point norm (getAll obs) lo
+traceLight :: Intersection -> Object -> Render Shadow
+traceLight (Intersection norm point (Ray origin dir) (Diffuse colour)) lo@(Object light matfun) = do
+	obs <- ask
+	fact <- doLighting point norm lo
 	return $ Shadow $ scale fact colour
 
-traceReflection :: ObjectStructure -> Intersection -> Rand StdGen Sample
-traceReflection obs (Intersection norm point (Ray _ dir) _) = traceSample obs ray >>= (return . Reflection)
+traceReflection :: Intersection -> Render Sample
+traceReflection (Intersection norm point (Ray _ dir) _) = do
+	obs <- ask
+	traceSample ray >>= (return . Reflection)
 	where
 		r = dir `sub` (scale (2 * (norm `dot` dir)) norm)
 		ray = Ray point r
 
 -- Trace refraction at entry only.
 -- TODO: fresnel reflection
-traceTransmission :: ObjectStructure -> Intersection -> Object -> Rand StdGen Sample
-traceTransmission obs int@(Intersection norm point (Ray _ dir) mat@(Transmissive i m)) ob = do
-	samp <- maybe (return Background) (traceSample obs) mray2
-	ref <- traceReflection obs int
+traceTransmission :: Intersection -> Object -> Render Sample
+traceTransmission int@(Intersection norm point (Ray _ dir) mat@(Transmissive i m)) ob = do
+	obs <- ask
+	samp <- maybe (return Background) traceSample mray2
+	ref <- traceReflection int
 	return $ Refraction samp ref m
 	where
 		refract nout nin norm point dir = normalize $ (scale (nout/nin) (scale (dir `dot` norm) norm) `add` dir) `sub` (scale (sqrt (1-((nout^^2)*(1-(dir `dot` norm)^^2)/(nin^^2)))) norm)

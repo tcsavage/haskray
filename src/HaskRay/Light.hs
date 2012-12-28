@@ -3,6 +3,8 @@ module HaskRay.Light where
 import HaskRay.Vector
 import HaskRay.Geometry
 import HaskRay.Material
+import HaskRay.Monad
+import HaskRay.Octree
 
 import Data.Typeable
 import Data.Maybe
@@ -10,8 +12,9 @@ import Control.Monad.Random
 import System.Random
 
 -- TODO: Shadow through reflection/refraction
-doLighting :: Vec3 -> Vec3 -> [Object] -> Object -> Rand StdGen Scalar
-doLighting x norm scene light@(Object ls (Emissive colour empow)) = do
+doLighting :: Vec3 -> Vec3 -> Object -> Render Scalar
+doLighting x norm light@(Object ls (Emissive colour empow)) = do
+	obs <- ask
 	eps1 <- getRandomR (0, 1)
 	eps2 <- getRandomR (0, 1)
 	let sphere = fromMaybe (error "Emissive surface not sphere") $ cast ls
@@ -25,7 +28,7 @@ doLighting x norm scene light@(Object ls (Emissive colour empow)) = do
 	let phi = 2 * pi * eps2
 	let l = normalize $ (scale ((cos phi) * sinA) su) `add` (scale ((sin phi) * sinA) sv) `add` (scale cosA sw)
 	let ray = Ray x l
-	let closestOb = closestIntersectOb ray scene
+	let closestOb = closestIntersectObStruct ray obs
 	--let getOb (Just (_,_,o)) = o
 	--let closestObIsLight = if isNothing closestOb then True else (if (getOb closestOb) == light then True else False)
 	let closestObIsLight = fromMaybe True $ closestOb >>= (\(_,_,o) -> Just $ o == light)
