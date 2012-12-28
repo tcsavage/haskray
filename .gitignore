@@ -11,3 +11,7 @@ SourceGraph
 icons
 
 *.ppm
+
+*.eventlog
+
+*.hp
