@@ -1,15 +1,22 @@
-module HaskRay.Light where
+module HaskRay.RayTree.Light where
 
-import HaskRay.Vector
 import HaskRay.Geometry
 import HaskRay.Material
 import HaskRay.Monad
 import HaskRay.Octree
+import HaskRay.Vector
 
-import Data.Typeable
 import Data.Maybe
-import Control.Monad.Random
-import System.Random
+import Data.Typeable
+
+-- | Shadow ray retult.
+data Shadow = Shadow Colour deriving (Show, Eq)
+
+traceLight :: Intersection -> Object -> Render Shadow
+traceLight (Intersection norm point (Ray origin dir) (Diffuse colour)) lo@(Object light matfun) = do
+    obs <- ask
+    fact <- doLighting point norm lo
+    return $ Shadow $ scale fact colour
 
 -- TODO: Shadow through reflection/refraction
 doLighting :: Vec3 -> Vec3 -> Object -> Render Scalar
@@ -40,34 +47,3 @@ doLighting x norm light@(Object ls (Emissive colour empow)) = do
         isReflectiveOrTransmissive (_, (Intersection _ _ _ (Reflective)), _) = True
         isReflectiveOrTransmissive (_, (Intersection _ _ _ (Transmissive _ _)), _) = True
         isReflectiveOrTransmissive _ = False
-
---getRandomPoint :: StdGen -> Vec3 -> Sphere -> (Vec3, StdGen)
---getRandomPoint rand x (Sphere center radius) = (l, rand')
---  where
---      sw = center `sub` x
---      su = normalize (if (abs $ x3 sw) > 1 then Vector3 0 1 0 else Vector3 1 0 0)
---      sv = sw `cross` su
---      cosAMax = sqrt (1 - radius * radius / ((x `sub` center) `dot` (x `sub` center)))
---      (eps1, eps2, rand') = get2Rands rand
---      cosA = 1 - eps1 + (eps1 * cosAMax)
---      sinA = sqrt $ 1 - cosA * cosA
---      phi = 2 * pi * eps2
---      l = normalize $ (scale ((cos phi) * sinA) su) `add` (scale ((sin phi) * sinA) sv) `add` (scale cosA sw)
-
---get2Rands :: StdGen -> (Double, Double, StdGen)
---get2Rands rand = (fst r1, fst r2, snd r2)
---  where
---      r1 = randomR (0,1) rand
---      r2 = randomR (0,1) $ snd r1
-
---calculateShadow :: Ray -> [Object] -> Object -> Colour
---calculateShadow ray@(Ray o _) scene light
---  | closestObIsLight = Vector3 1 1 1
---  | otherwise = Vector3 (0) (0) (0)
---  where
---      dist = mag $ (centerOb light) `sub` o
---      hits = catMaybes $ map (intersectOb ray) scene
---      closest = filter (\(d, _) -> d <= dist)
---      closestOb = closestIntersectOb ray scene
---      getOb (Just (_,_,o)) = o
---      closestObIsLight = if isNothing closestOb then True else (if (getOb closestOb) == light then True else False)

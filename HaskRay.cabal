@@ -29,13 +29,15 @@ library
     HaskRay.Geometry.Ray
     HaskRay.Geometry.Sphere
     HaskRay.Geometry.Util
-    HaskRay.Light
     HaskRay.Material
     HaskRay.Monad
     HaskRay.Octree
     HaskRay.Parser
     HaskRay.Projection
     HaskRay.RayTree
+    HaskRay.RayTree.Light
+    HaskRay.RayTree.Pixel
+    HaskRay.RayTree.Sample
     HaskRay.RayTree.String
     HaskRay.Scene
     HaskRay.Settings
