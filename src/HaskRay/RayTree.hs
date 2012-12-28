@@ -19,6 +19,7 @@ import HaskRay.Monad
 
 import System.Random
 import Control.Monad.Random
+import Control.Parallel.Strategies (using, parList, rseq)
 import Data.Maybe
 import Data.Typeable (cast)
 
@@ -40,7 +41,8 @@ data Shadow = Shadow Colour deriving (Show, Eq)
 -- | Builds a ray tree for a pixel.
 tracePixel :: [Ray] -> Render Pixel
 tracePixel rays = do
-    mapM (traceSample) rays >>= (return . Pixel)
+    samples <- sequence (map traceSample rays `using` parList rseq)
+    return $ Pixel samples
 
 -- | Evaluates the ray tee under a pixel to determine a final 'Colour' value.
 evalPixel :: Pixel -> Colour
