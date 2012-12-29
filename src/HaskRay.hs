@@ -61,17 +61,16 @@ data PixBuf = PixBuf (Int, Int) ![Colour] deriving (Show, Eq)
 savePpm :: FilePath -> PixBuf -> IO ()
 savePpm dest (PixBuf (w, h) ps) = withFile dest WriteMode $ \handle -> do
     start <- getCurrentTime
-    B.hPutStrLn handle $ B.pack $ "P3\n" ++ show w ++ " " ++ show h ++ "\n255"
+    B.hPutStrLn handle $ B.pack fileHead
     let colOut (Vector3 r g b) = B.pack $ (toIntStr r) ++ " " ++ (toIntStr g) ++ " " ++ (toIntStr b)
     let rows = splitEvery w ps
     let rowString ps = B.concat $ intersperse (B.pack " ") $ map colOut ps
-    sequence_ (map (\(r,n) -> (B.hPutStrLn handle $ rowString r) >> print n) (zip rows [1..]) `using` parList rseq) -- Use parallel eval strategy
-    --B.hPutStrLn handle $ B.unlines $ (map rowString rows `using` parList rseq) -- Use parallel eval strategy
-    --sequence_ (map ((B.hPutStrLn handle) . rowString) rows `using` parList rseq)
+    --mapM_ (\(r) -> (B.hPutStrLn handle $ rowString r)) rows
+    sequence_ (map (\(r) -> (B.hPutStrLn handle $ rowString r)) rows `using` parList rseq) -- Use parallel eval strategy
     end <- getCurrentTime
     putStrLn $ printf "Render took %s" (show $ diffUTCTime end start)
     where
-        --toIntStr n = show $ floor $ ((clamp n) ** (1/2.2)) * 255 + 0.5
+        fileHead = "P3\n" ++ show w ++ " " ++ show h ++ "\n255"
         toIntStr n = show $ floor $ ((clamp n) ** (1/2.2)) * 255 + 0.5
         clamp n = if n < 0 then 0 else (if n > 1 then 1 else n)
 
@@ -81,7 +80,7 @@ render settings@(Settings w h _ rand) (Scene os view) = PixBuf (w, h) pixels
     where
         obs = mkObStruct os
         sampleRays = makeCameraRays settings view -- [[Ray]]
-        --pixels = (flip evalRand) rand $ sequence (map (\x -> tracePixel obs x >>= (return . evalPixel)) sampleRays `using` parList rseq)
+        --pixels = runRender (mapM (\x -> tracePixel x >>= (return . evalPixel)) sampleRays) obs rand
         pixels = runRender (sequence (map (\x -> tracePixel x >>= (return . evalPixel)) sampleRays `using` parList rseq)) obs rand
 
 -- | Render a scene with given settings. (Not optimised)
@@ -90,7 +89,7 @@ renderUnOpt settings@(Settings w h _ rand) (Scene os view) = PixBuf (w, h) pixel
     where
         obs = (os, Leaf vzero 1 [], os)
         sampleRays = makeCameraRays settings view -- [[Ray]]
-        --pixels = (flip evalRand) rand $ sequence (map (\x -> tracePixel obs x >>= (return . evalPixel)) sampleRays `using` parList rseq)
+        --pixels = runRender (mapM (\x -> tracePixel x >>= (return . evalPixel)) sampleRays) obs rand
         pixels = runRender (sequence (map (\x -> tracePixel x >>= (return . evalPixel)) sampleRays `using` parList rseq)) obs rand
 
 getPixelForest :: Settings -> Scene -> [Pixel]
