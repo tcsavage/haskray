@@ -45,7 +45,7 @@ library
     HaskRay.Vector.Simple
     HaskRay.Vector.Mid
     HaskRay.Vector.Advanced
-  build-depends:       base ==4.5.*, bytestring, split ==0.1.*, parallel ==3.2.*, random, mtl, MonadRandom, containers, time
+  build-depends:       base ==4.5.*, bytestring, split ==0.1.*, parallel ==3.2.*, random, mtl, MonadRandom, containers, time, deepseq
   hs-source-dirs:      src
 
 executable HaskRay
@@ -59,6 +59,7 @@ executable HaskRay
     bytestring,
     split ==0.1.*,
     parallel ==3.2.*,
+    deepseq,
     random,
     MonadRandom,
     containers,
