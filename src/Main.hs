@@ -15,7 +15,6 @@ import Text.Printf
 
 import GLDisplay
 import Settings
-import Data.GraphViz.Commands (isGraphvizInstalled)
 
 mesh4 = (Mesh (Vector3 0 (-5) (-5)) [(Triangle (Vertex (Vector3 (-1.000000) (-1.000000) (1.000000)) (Vector3 (-0.579516) (-0.703146) (0.411939)) (Vector2 0 0)) (Vertex (Vector3 (-2.000000) (2.000000) (1.000000)) (Vector3 (-0.616413) (0.616413) (0.489914)) (Vector2 0 0)) (Vertex (Vector3 (-2.000000) (2.000000) (-1.000000)) (Vector3 (-0.590136) (0.590136) (-0.550829)) (Vector2 0 0))), (Triangle (Vertex (Vector3 (-2.000000) (2.000000) (1.000000)) (Vector3 (-0.616413) (0.616413) (0.489914)) (Vector2 0 0)) (Vertex (Vector3 (1.000000) (1.000000) (1.000000)) (Vector3 (0.703146) (0.579516) (0.411939)) (Vector2 0 0)) (Vertex (Vector3 (1.000000) (1.000000) (-1.000000)) (Vector3 (0.651295) (0.469405) (-0.596179)) (Vector2 0 0))), (Triangle (Vertex (Vector3 (1.000000) (1.000000) (1.000000)) (Vector3 (0.703146) (0.579516) (0.411939)) (Vector2 0 0)) (Vertex (Vector3 (1.000000) (-1.000000) (2.000000)) (Vector3 (0.477096) (-0.477096) (0.738060)) (Vector2 0 0)) (Vertex (Vector3 (1.000000) (-1.000000) (-1.000000)) (Vector3 (0.577349) (-0.577349) (-0.577349)) (Vector2 0 0))), (Triangle (Vertex (Vector3 (1.000000) (-1.000000) (2.000000)) (Vector3 (0.477096) (-0.477096) (0.738060)) (Vector2 0 0)) (Vertex (Vector3 (-1.000000) (-1.000000) (1.000000)) (Vector3 (-0.579516) (-0.703146) (0.411939)) (Vector2 0 0)) (Vertex (Vector3 (-1.000000) (-1.000000) (-1.000000)) (Vector3 (-0.469405) (-0.651295) (-0.596179)) (Vector2 0 0))), (Triangle (Vertex (Vector3 (-1.000000) (-1.000000) (-1.000000)) (Vector3 (-0.469405) (-0.651295) (-0.596179)) (Vector2 0 0)) (Vertex (Vector3 (-2.000000) (2.000000) (-1.000000)) (Vector3 (-0.590136) (0.590136) (-0.550829)) (Vector2 0 0)) (Vertex (Vector3 (1.000000) (1.000000) (-1.000000)) (Vector3 (0.651295) (0.469405) (-0.596179)) (Vector2 0 0))), (Triangle (Vertex (Vector3 (1.000000) (-1.000000) (2.000000)) (Vector3 (0.477096) (-0.477096) (0.738060)) (Vector2 0 0)) (Vertex (Vector3 (1.000000) (1.000000) (1.000000)) (Vector3 (0.703146) (0.579516) (0.411939)) (Vector2 0 0)) (Vertex (Vector3 (-2.000000) (2.000000) (1.000000)) (Vector3 (-0.616413) (0.616413) (0.489914)) (Vector2 0 0))), (Triangle (Vertex (Vector3 (-1.000000) (-1.000000) (-1.000000)) (Vector3 (-0.469405) (-0.651295) (-0.596179)) (Vector2 0 0)) (Vertex (Vector3 (-1.000000) (-1.000000) (1.000000)) (Vector3 (-0.579516) (-0.703146) (0.411939)) (Vector2 0 0)) (Vertex (Vector3 (-2.000000) (2.000000) (-1.000000)) (Vector3 (-0.590136) (0.590136) (-0.550829)) (Vector2 0 0))), (Triangle (Vertex (Vector3 (-2.000000) (2.000000) (-1.000000)) (Vector3 (-0.590136) (0.590136) (-0.550829)) (Vector2 0 0)) (Vertex (Vector3 (-2.000000) (2.000000) (1.000000)) (Vector3 (-0.616413) (0.616413) (0.489914)) (Vector2 0 0)) (Vertex (Vector3 (1.000000) (1.000000) (-1.000000)) (Vector3 (0.651295) (0.469405) (-0.596179)) (Vector2 0 0))), (Triangle (Vertex (Vector3 (1.000000) (1.000000) (-1.000000)) (Vector3 (0.651295) (0.469405) (-0.596179)) (Vector2 0 0)) (Vertex (Vector3 (1.000000) (1.000000) (1.000000)) (Vector3 (0.703146) (0.579516) (0.411939)) (Vector2 0 0)) (Vertex (Vector3 (1.000000) (-1.000000) (-1.000000)) (Vector3 (0.577349) (-0.577349) (-0.577349)) (Vector2 0 0))), (Triangle (Vertex (Vector3 (1.000000) (-1.000000) (-1.000000)) (Vector3 (0.577349) (-0.577349) (-0.577349)) (Vector2 0 0)) (Vertex (Vector3 (1.000000) (-1.000000) (2.000000)) (Vector3 (0.477096) (-0.477096) (0.738060)) (Vector2 0 0)) (Vertex (Vector3 (-1.000000) (-1.000000) (-1.000000)) (Vector3 (-0.469405) (-0.651295) (-0.596179)) (Vector2 0 0))), (Triangle (Vertex (Vector3 (1.000000) (-1.000000) (-1.000000)) (Vector3 (0.577349) (-0.577349) (-0.577349)) (Vector2 0 0)) (Vertex (Vector3 (-1.000000) (-1.000000) (-1.000000)) (Vector3 (-0.469405) (-0.651295) (-0.596179)) (Vector2 0 0)) (Vertex (Vector3 (1.000000) (1.000000) (-1.000000)) (Vector3 (0.651295) (0.469405) (-0.596179)) (Vector2 0 0))), (Triangle (Vertex (Vector3 (-1.000000) (-1.000000) (1.000000)) (Vector3 (-0.579516) (-0.703146) (0.411939)) (Vector2 0 0)) (Vertex (Vector3 (1.000000) (-1.000000) (2.000000)) (Vector3 (0.477096) (-0.477096) (0.738060)) (Vector2 0 0)) (Vertex (Vector3 (-2.000000) (2.000000) (1.000000)) (Vector3 (-0.616413) (0.616413) (0.489914)) (Vector2 0 0)))])
 
@@ -92,7 +91,7 @@ objects = [Object (Plane (normalize (Vector3 0 (-1) 0)) 5) (Diffuse (Vector3 0.8
         ,Object (Sphere (Vector3 8 3 4) 2) (Diffuse (Vector3 1 1 0))
         --,Object (Sphere (Vector3 2 (-15) 2) 1) (Emissive (Vector3 1 0 0) 400)
         ,Object (Sphere (Vector3 (-8) (-15) 2) 1) (Emissive (Vector3 1 0 0) 400)
-        ,Object axes (Diffuse (Vector3 1 0.5 0))
+        ,Object mesh3 (Diffuse (Vector3 1 0.5 0))
         ]
 
 camera :: View
@@ -127,9 +126,6 @@ readArgs args = error ("Unrecognised arguments: " ++ show args)
 main :: IO ()
 --main = mapM_ testAnim (zip [-10,-9.75..10] [1..])
 main = do
-    gvi <- isGraphvizInstalled
-    unless gvi $ putStrLn "WARN: Graphviz isn't installed. Not all functionality will be available."
-
     opts <- getArgs
     randomSeed <- newStdGen
     let settings = readArgs opts
