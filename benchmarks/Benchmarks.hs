@@ -6,6 +6,11 @@ import Criterion.Main
 
 import System.Random
 
+writeFun :: (Scene -> PixBuf) -> Scene -> IO ()
+writeFun f s = do
+    let pb = f s
+    savePpm "bench-testfile.ppm" pb
+
 mesh3 = (Mesh (Vector3 0 (-5) (-5)) [(Triangle (Vertex (Vector3 (-2.165064) (1.113091) (1.800000)) (Vector3 (-0.695334) (0.553667) (0.458174)) (Vector2 0 0)) (Vertex (Vector3 (-0.000000) (-0.136910) (-8.200000)) (Vector3 (0.000000) (0.025117) (-0.999664)) (Vector2 0 0)) (Vertex (Vector3 (-0.000000) (-2.636908) (1.800001)) (Vector3 (0.000000) (-0.884854) (0.465835)) (Vector2 0 0))), (Triangle (Vertex (Vector3 (-0.000000) (-2.636908) (1.800001)) (Vector3 (0.000000) (-0.884854) (0.465835)) (Vector2 0 0)) (Vertex (Vector3 (-0.000000) (-0.136910) (-8.200000)) (Vector3 (0.000000) (0.025117) (-0.999664)) (Vector2 0 0)) (Vertex (Vector3 (2.165063) (1.113092) (1.800000)) (Vector3 (0.695334) (0.553667) (0.458174)) (Vector2 0 0))), (Triangle (Vertex (Vector3 (-0.000000) (0.352051) (1.800000)) (Vector3 (0.000000) (0.631611) (0.775262)) (Vector2 0 0)) (Vertex (Vector3 (-0.000000) (-0.136910) (-8.200000)) (Vector3 (0.000000) (0.025117) (-0.999664)) (Vector2 0 0)) (Vertex (Vector3 (-2.165064) (1.113091) (1.800000)) (Vector3 (-0.695334) (0.553667) (0.458174)) (Vector2 0 0))), (Triangle (Vertex (Vector3 (-0.000000) (-2.636908) (1.800001)) (Vector3 (0.000000) (-0.884854) (0.465835)) (Vector2 0 0)) (Vertex (Vector3 (-0.000000) (0.352051) (1.800000)) (Vector3 (0.000000) (0.631611) (0.775262)) (Vector2 0 0)) (Vertex (Vector3 (-2.165064) (1.113091) (1.800000)) (Vector3 (-0.695334) (0.553667) (0.458174)) (Vector2 0 0))), (Triangle (Vertex (Vector3 (-0.000000) (-0.136910) (-8.200000)) (Vector3 (0.000000) (0.025117) (-0.999664)) (Vector2 0 0)) (Vertex (Vector3 (-0.000000) (0.352051) (1.800000)) (Vector3 (0.000000) (0.631611) (0.775262)) (Vector2 0 0)) (Vertex (Vector3 (2.165063) (1.113092) (1.800000)) (Vector3 (0.695334) (0.553667) (0.458174)) (Vector2 0 0))), (Triangle (Vertex (Vector3 (-0.000000) (0.352051) (1.800000)) (Vector3 (0.000000) (0.631611) (0.775262)) (Vector2 0 0)) (Vertex (Vector3 (-0.000000) (-2.636908) (1.800001)) (Vector3 (0.000000) (-0.884854) (0.465835)) (Vector2 0 0)) (Vertex (Vector3 (2.165063) (1.113092) (1.800000)) (Vector3 (0.695334) (0.553667) (0.458174)) (Vector2 0 0)))])
 
 objects :: [Object]
@@ -42,4 +47,8 @@ main = do
             [bench "render" $ whnf (\s -> render settings s) scene
             ,bench "render (unopt)" $ whnf (\s -> renderUnOpt settings s) scene
             ]
+        --,bgroup "render & save"
+        --    [bench "render" $ whnfIO $ (\s -> writeFun (render settings) s) scene
+        --    ,bench "render (unopt)" $ whnfIO $ (\s -> writeFun (renderUnOpt settings) s) scene
+        --    ]
         ]
