@@ -2,7 +2,6 @@ module GLDisplay.Util where
 
 import HaskRay
 
-import Control.Parallel.Strategies (using, parList, rseq)
 import Data.Time.Clock
 import Foreign.C.Types
 import Foreign.Marshal.Array
@@ -38,7 +37,6 @@ colourToBytes (Vector3 r g b) = [toByte r, toByte g, toByte b, toByte 1]
 
 coloursToBytes :: [Colour] -> [CChar]
 coloursToBytes cs = concatMap colourToBytes cs
---coloursToBytes cs = concat (map colourToBytes cs `using` parList rseq)
 
 makeColourArray :: [Colour] -> IO (Ptr CChar)
 --makeColourArray = newArray . coloursToBytes
