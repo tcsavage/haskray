@@ -3,9 +3,11 @@ module GLDisplay.Util where
 import HaskRay
 
 import Control.Parallel.Strategies (using, parList, rseq)
+import Data.Time.Clock
 import Foreign.C.Types
 import Foreign.Marshal.Array
 import Foreign.Ptr
+import Text.Printf
 
 import Graphics.Rendering.OpenGL hiding (Vector3)
 import qualified Data.Tensor as GLT (Vector3(..), Vertex3(..))
@@ -35,7 +37,14 @@ colourToBytes (Vector3 r g b) = [toByte r, toByte g, toByte b, toByte 1]
             | otherwise = n
 
 coloursToBytes :: [Colour] -> [CChar]
-coloursToBytes cs = concat (map colourToBytes cs `using` parList rseq)
+coloursToBytes cs = concatMap colourToBytes cs
+--coloursToBytes cs = concat (map colourToBytes cs `using` parList rseq)
 
 makeColourArray :: [Colour] -> IO (Ptr CChar)
-makeColourArray = newArray . coloursToBytes
+--makeColourArray = newArray . coloursToBytes
+makeColourArray cs = do
+    start <- getCurrentTime
+    arr <- newArray $ coloursToBytes cs
+    end <- getCurrentTime
+    putStrLn $ printf "Render took %s" (show $ diffUTCTime end start)
+    return arr
