@@ -23,7 +23,8 @@ data Octree = Leaf Vec3 Scalar [Object] | Branch { pos :: Vec3, size :: Scalar, 
 type ObjectStructure = ([Object], Octree, [Object])
 
 closestIntersectObStruct :: Ray -> ObjectStructure -> Maybe (Scalar, Intersection, Object)
-closestIntersectObStruct ray (inf, oct, _) = (closestInf `par` closestFin) `pseq` (closest closestInf closestFin)
+closestIntersectObStruct ray (inf, oct, _) = closest closestInf closestFin
+--closestIntersectObStruct ray (inf, oct, _) = (closestInf `par` closestFin) `pseq` (closest closestInf closestFin)
     where
         closest Nothing x = x
         closest x Nothing = x
@@ -81,6 +82,8 @@ newConf pos size = map (\v -> (add pos $ (size/4) `scale` v, size')) permuteDirs
         size' = size/2
 
 -- Reduces the number of objects in each leaf by deepening the octree.
+--    | n < maxDepth && length os > 1 = (nwh `par` nwl `par` neh `par` nel `par` swh `par` swl `par` seh `par` sel) `pseq` (Branch pos size nwh nwl neh nel swh swl seh sel)
+--    | n < maxDepth && length os > 1 = Branch pos size nwh nwl neh nel swh swl seh sel
 reduceLeaves :: Int -> Octree -> Octree
 reduceLeaves n (Leaf pos size os)
     | n < 0 = error "Negative depth"
