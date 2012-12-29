@@ -39,7 +39,6 @@ import Data.List
 import Data.List.Split
 import Data.Maybe
 import Data.Time.Clock
-import Control.Parallel.Strategies (using, parList, rseq)
 import Control.DeepSeq
 import Control.Parallel
 import Control.Parallel.Strategies (using, parList, rseq, rdeepseq)
@@ -71,8 +70,7 @@ savePpm dest (PixBuf (w, h) ps) = withFile dest WriteMode $ \handle -> do
     let colOut (Vector3 r g b) = B.pack $ (toIntStr r) ++ " " ++ (toIntStr g) ++ " " ++ (toIntStr b)
     let rows = splitEvery w ps
     let rowString ps = B.concat $ intersperse (B.pack " ") $ map colOut ps
-    --mapM_ (\(r) -> (B.hPutStrLn handle $ rowString r)) rows
-    sequence_ (map (\(r) -> (B.hPutStrLn handle $ rowString r)) rows `using` parList rseq) -- Use parallel eval strategy
+    mapM_ (\(r) -> (B.hPutStrLn handle $ rowString r)) rows
     end <- getCurrentTime
     putStrLn $ printf "Render took %s" (show $ diffUTCTime end start)
     where
@@ -86,8 +84,7 @@ render settings@(Settings w h _ rand) (Scene os view) = PixBuf (w, h) pixels
     where
         obs = mkObStruct os
         sampleRays = makeCameraRays settings view -- [[Ray]]
-        --pixels = runRender (mapM (\x -> tracePixel x >>= (return . evalPixel)) sampleRays) obs rand
-        pixels = runRender (sequence (map (\x -> tracePixel x >>= (return . evalPixel)) sampleRays `using` parList rseq)) obs rand
+        pixels = runRender (mapM (\x -> tracePixel x >>= (return . evalPixel)) sampleRays) obs rand
 
 -- | Render a scene with given settings. (Not optimised)
 renderUnOpt :: Settings -> Scene -> PixBuf
@@ -95,15 +92,13 @@ renderUnOpt settings@(Settings w h _ rand) (Scene os view) = PixBuf (w, h) pixel
     where
         obs = (os, Leaf vzero 1 [], os)
         sampleRays = makeCameraRays settings view -- [[Ray]]
-        --pixels = runRender (mapM (\x -> tracePixel x >>= (return . evalPixel)) sampleRays) obs rand
-        pixels = runRender (sequence (map (\x -> tracePixel x >>= (return . evalPixel)) sampleRays `using` parList rseq)) obs rand
+        pixels = runRender (mapM (\x -> tracePixel x >>= (return . evalPixel)) sampleRays) obs rand
 
 getPixelForest :: Settings -> Scene -> [Pixel]
 getPixelForest settings@(Settings _ _ _ rand) (Scene os view) = forest
     where
         obs = mkObStruct os
         sampleRays = makeCameraRays settings view
-        --forest = (flip evalRand) rand $ mapM (tracePixel obs) sampleRays
         forest = runRender (mapM tracePixel sampleRays) obs rand
 
 -- | Return a textual representation of the ray tree for a given pixel (instead of rendering).
@@ -112,5 +107,4 @@ examineTreeAt settings@(Settings w _ _ rand) (Scene os view) (x, y) = treeString
     where
         obs = mkObStruct os
         sampleRays = makeCameraRays settings view
-        --tree = (flip evalRand) rand $ tracePixel obs (sampleRays !! (y*w + x))
         tree = runRender (tracePixel $ sampleRays !! (y*w + x)) obs rand

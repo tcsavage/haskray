@@ -8,7 +8,6 @@ import HaskRay.Geometry
 
 import Control.Applicative
 import Control.Monad
-import Control.Parallel
 import Data.List
 
 import Debug.Trace
@@ -24,7 +23,6 @@ type ObjectStructure = ([Object], Octree, [Object])
 
 closestIntersectObStruct :: Ray -> ObjectStructure -> Maybe (Scalar, Intersection, Object)
 closestIntersectObStruct ray (inf, oct, _) = closest closestInf closestFin
---closestIntersectObStruct ray (inf, oct, _) = (closestInf `par` closestFin) `pseq` (closest closestInf closestFin)
     where
         closest Nothing x = x
         closest x Nothing = x
@@ -35,20 +33,6 @@ closestIntersectObStruct ray (inf, oct, _) = closest closestInf closestFin
 maxObs = 3
 
 maxDepth = 3
-
---mkOctree :: [Object] -> Octree
---mkOctree os
---  | length os <= maxObs = Leaf vzero 1 os
---  | otherwise = Branch center width empty empty empty empty empty empty empty empty
---  where
---      objbbs = boundObjects os
---      center = boundingCubeCenter objbbs
---      width = boundingCubeSize objbbs
---      empty = Leaf vzero 1 []
---      getMembership (Branch center width _ _ _ _ _ _ _ _) o = undefined
---          where
---              (BoundingBox p1 p2) = boundingBoxOb o
---      mkSubTree os = undefined
 
 -- | Build an octree-optimised object structure (infinite objects, finite object octree) from a list of objects.
 mkObStruct :: [Object] -> ObjectStructure
@@ -82,8 +66,6 @@ newConf pos size = map (\v -> (add pos $ (size/4) `scale` v, size')) permuteDirs
         size' = size/2
 
 -- Reduces the number of objects in each leaf by deepening the octree.
---    | n < maxDepth && length os > 1 = (nwh `par` nwl `par` neh `par` nel `par` swh `par` swl `par` seh `par` sel) `pseq` (Branch pos size nwh nwl neh nel swh swl seh sel)
---    | n < maxDepth && length os > 1 = Branch pos size nwh nwl neh nel swh swl seh sel
 reduceLeaves :: Int -> Octree -> Octree
 reduceLeaves n (Leaf pos size os)
     | n < 0 = error "Negative depth"
@@ -129,26 +111,6 @@ getObjects (inf, oct, _) ray = inf ++ (filterObsByIntersection oct ray)
 
 getAll :: ObjectStructure -> [Object]
 getAll (_, _, os) = os
---getAll (inf, oct) = inf ++ get oct
---  where
---      get (Branch _ _ a b c d e f g h) = concatMap get [a, b, c, d, e, f, g, h]
---      get (Leaf _ _ os) = os
 
 closestIntersectOct :: Ray -> Octree -> Maybe (Scalar, Intersection, Object)
 closestIntersectOct ray = (closestIntersectOb ray) . (flip filterObsByIntersection ray)
-
-{-
-Functions:
-
-Make Octree
-Insert
-Remove
-Cull (frustum/occlusion)
-
--- | Takes an octree (leaf) and splits it down into sub trees.
-simplifyLeaves :: Octree -> Octree
-
--- | Recursively tests for intersections between ray and octree, returning objects in leaves the ray passes through.
-collectObjects :: Octree -> [Object]
-
--}

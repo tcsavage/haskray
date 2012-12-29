@@ -7,15 +7,13 @@ import HaskRay.Material
 import HaskRay.Monad
 import HaskRay.Vector
 
-import Control.Parallel.Strategies
-
 -- | Root node of a ray tree. Branches to an arbitrary number of 'Sample's.
 data Pixel = Pixel [Sample] deriving (Show, Eq)
 
 -- | Builds a ray tree for a pixel.
 tracePixel :: [Ray] -> Render Pixel
 tracePixel rays = do
-    samples <- sequence (map traceSample rays `using` parList rseq)
+    samples <- mapM traceSample rays
     return $ Pixel samples
 
 -- | Evaluates the ray tee under a pixel to determine a final 'Colour' value.
