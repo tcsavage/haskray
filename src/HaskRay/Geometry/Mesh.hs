@@ -47,24 +47,6 @@ pointOnTriangle (Vector2 u v) (Triangle (Vertex p1 _ _) (Vertex p2 _ _) (Vertex 
 
 instance Shape Triangle where
 	--intersect ray (Triangle (Vertex p1 _ _) (Vertex p2 _ _) (Vertex p3 _ _), m) = do
-	--	(dist, isect@(Intersection _ p (Ray o dir) _)) <- intersect ray (plane, m)
-	--	let t1 = edge o p p1 p2
-	--	let t2 = edge o p p2 p3
-	--	let t3 = edge o p p3 p1
-	--	if t1 && t2 && t3 then Just (dist, isect) else Nothing
-	--	where
-	--		normal = normalize ((p2 `sub` p1) `cross` (p3 `sub` p1))
-	--		dist = normal `dot` p1
-	--		plane = Plane normal dist
-	--		edge o p p1 p2 = d1 < 0
-	--			where
-	--				v1 = p1 `sub` p
-	--				v2 = p2 `sub` p
-	--				n1 = normalize $ v2 `cross` v1
-	--				d1 = (neg o) `dot` n1
-
-
-	--intersect ray (Triangle (Vertex p1 _ _) (Vertex p2 _ _) (Vertex p3 _ _), m) = do
 	--	is@(_, (Intersection _ p _ _)) <- intersect ray (plane, m)
 	--	if pointInTriangle p p1 p2 p3 then return is else Nothing
 	--	where
