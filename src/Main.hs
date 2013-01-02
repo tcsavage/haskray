@@ -12,6 +12,7 @@ import qualified Data.ByteString.Char8 as B
 import Control.Concurrent.Async
 import Control.Monad
 import Text.Printf
+import Debug.Trace
 
 import GLDisplay
 import Settings
@@ -85,7 +86,7 @@ objects = [Object (Plane (normalize (Vector3 0 (-1) 0)) 5) (Diffuse (Vector3 0.8
         ,Object (Plane (normalize (Vector3 1 0 0)) (14)) (Diffuse (Vector3 0.8 0 0))
         ,Object (Plane (normalize (Vector3 (-1) 0 0)) (14)) (Diffuse (Vector3 0 0.8 0))
         ,Object (Plane (normalize (Vector3 0 0 (-1))) (18)) (Diffuse (Vector3 0.8 0.8 0.8))
-        ,Object (Sphere (Vector3 1 1 1) 3) (Transmissive 1.05 0.9)
+        --,Object (Sphere (Vector3 1 1 1) 3) (Transmissive 1.05 0.9)
         ,Object (Sphere (Vector3 5 1 10) 4) (Reflective)
         ,Object (Sphere (Vector3 (-8) 0 8) 5) (Diffuse (Vector3 0 1 0))
         ,Object (Sphere (Vector3 8 3 4) 2) (Diffuse (Vector3 1 1 0))
@@ -126,6 +127,7 @@ readArgs args = error ("Unrecognised arguments: " ++ show args)
 main :: IO ()
 --main = mapM_ testAnim (zip [-10,-9.75..10] [1..])
 main = do
+    traceEventIO "Start main"
     opts <- getArgs
     randomSeed <- newStdGen
     let settings = readArgs opts
@@ -138,7 +140,9 @@ main = do
         Just filepath -> do
             putStrLn $ "Rendering (seed: " ++ (show randomSeed) ++ ")..."
             when (getOpenGLView settings) $ glDisp rsettings scene pbuf
+            traceEventIO "Start render/write"
             savePpm filepath pbuf
+            traceEventIO "Finished"
         otherwise -> error "No output file given"
 
 testAnim (v,n) = do

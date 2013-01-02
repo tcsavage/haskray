@@ -13,9 +13,11 @@ import Control.Monad.Reader
 import Control.Monad.Random
 import System.Random (getStdGen, StdGen)
 
+import Debug.Trace
+
 -- | Render monad type alias.
 type Render a = ReaderT ObjectStructure (Rand StdGen) a
 
 -- | Run Render monad.
 runRender :: Render a -> ObjectStructure -> StdGen -> a
-runRender m a b = evalRand (runReaderT m a) b
+runRender m a b = traceEvent "runRender" $ evalRand (runReaderT m a) b

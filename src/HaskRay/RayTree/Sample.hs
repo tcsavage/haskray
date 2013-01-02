@@ -8,6 +8,8 @@ import HaskRay.Monad
 import HaskRay.Octree
 import HaskRay.Vector
 
+import Debug.Trace
+
 -- | When a sample is traced, the object it intersects with determines its value.
 data Sample = Background                       -- ^ The ray hit nothing. Evaluates to a simple background colour.
             | Diff Colour [Shadow] Sample      -- ^ Diffuse surface. Contains a base colour, a shadow ray for each light, and a global illumination sample.
@@ -18,7 +20,7 @@ data Sample = Background                       -- ^ The ray hit nothing. Evaluat
             deriving (Show, Eq)
 
 traceSample :: Ray -> Render Sample
-traceSample ray = do
+traceSample ray = traceEvent "traceSample" $ do
     obs <- ask
     let os = getObjects obs ray
     procIntersection $ closestIntersectObStruct ray obs
@@ -54,7 +56,7 @@ evalSample (Refraction trans ref mix) = t `add` r
         r = scale omix $ evalSample ref
 
 traceReflection :: Intersection -> Render Sample
-traceReflection (Intersection norm point (Ray _ dir) _) = do
+traceReflection (Intersection norm point (Ray _ dir) _) = traceEvent "traceReflection" $ do
     obs <- ask
     traceSample ray >>= (return . Reflection)
     where
@@ -64,7 +66,7 @@ traceReflection (Intersection norm point (Ray _ dir) _) = do
 -- Trace refraction at entry only.
 -- TODO: fresnel reflection
 traceTransmission :: Intersection -> Object -> Render Sample
-traceTransmission int@(Intersection norm point (Ray _ dir) mat@(Transmissive i m)) ob = do
+traceTransmission int@(Intersection norm point (Ray _ dir) mat@(Transmissive i m)) ob = traceEvent "traceTransmission" $ do
     obs <- ask
     samp <- maybe (return Background) traceSample mray2
     ref <- traceReflection int
