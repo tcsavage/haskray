@@ -45,7 +45,7 @@ library
     HaskRay.Vector.Simple
     HaskRay.Vector.Mid
     HaskRay.Vector.Advanced
-  build-depends:       base ==4.5.*, bytestring, split ==0.1.*, parallel ==3.2.*, random, mtl, MonadRandom, containers, time, deepseq
+  build-depends:       base ==4.5.*, bytestring, split ==0.1.*, parallel ==3.2.*, random, mtl, MonadRandom, containers, time, deepseq, monad-parallel
   hs-source-dirs:      src
 
 executable HaskRay
@@ -67,7 +67,8 @@ executable HaskRay
     GLUT >= 2.3,
     OpenGL >=2.6,
     async,
-    Tensor
+    Tensor,
+    monad-parallel
 
 --  if flag(buildfrontend)
 --    build-depends:       base ==4.5.*, HaskRay, bytestring, split ==0.1.*, parallel ==3.2.*, random, MonadRandom, containers, GLUT, OpenGL, async, Tensor

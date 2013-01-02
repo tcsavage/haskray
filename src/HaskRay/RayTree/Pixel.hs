@@ -7,6 +7,8 @@ import HaskRay.Material
 import HaskRay.Monad
 import HaskRay.Vector
 
+import qualified Control.Monad.Parallel as P
+
 import Debug.Trace
 
 -- | Root node of a ray tree. Branches to an arbitrary number of 'Sample's.

@@ -40,6 +40,7 @@ import Data.List.Split
 import Data.Maybe
 import Data.Time.Clock
 import Control.DeepSeq
+import qualified Control.Monad.Parallel as P
 import Control.Parallel
 import Control.Parallel.Strategies (using, parList, rseq, rdeepseq)
 import Text.Printf
