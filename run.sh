@@ -1,4 +1,4 @@
 #! /bin/sh
 
-./dist/build/HaskRay/HaskRay +RTS -N2 -RTS $@
+./dist/build/HaskRay/HaskRay +RTS -N -RTS $@
 #display test.ppm &
