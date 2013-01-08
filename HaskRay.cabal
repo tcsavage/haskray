@@ -42,8 +42,6 @@ library
     HaskRay.Scene
     HaskRay.Settings
     HaskRay.Vector
-    HaskRay.Vector.Simple
-    HaskRay.Vector.Mid
     HaskRay.Vector.Advanced
   build-depends:       base ==4.5.*, bytestring, split ==0.1.*, parallel ==3.2.*, random, mtl, MonadRandom, containers, time, deepseq, monad-parallel
   hs-source-dirs:      src
