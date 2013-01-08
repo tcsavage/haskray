@@ -11,6 +11,8 @@ maintainer:          cam01005@port.ac.uk
 category:            Graphics
 build-type:          Simple
 cabal-version:       >=1.8
+data-files:          ui/*.html, ui/*.css, ui/*.js, ui/icons/*.png
+data-dir:            frontend-data
 
 flag buildfrontend
   description:         Build the front-end as well as the library

@@ -1,6 +1,7 @@
 module GLDisplay.UI where
 
 import GLDisplay.Util
+import Paths_HaskRay (getDataFileName, getDataDir)
 
 import Graphics.UI.Awesomium
 import qualified Graphics.UI.Awesomium.OpenGL as AGL
@@ -17,13 +18,13 @@ withAwesomium :: (Int, Int) -> [WebViewHandle -> String -> [JsValueHandle] -> IO
 withAwesomium (w,h) handlers fun = do
 	-- Start Awesomium
 	putStrLn "Starting Awesomium"
-	css <- readFile "Awesomium.css"
+	css <- getDataFileName "ui/Awesomium.css" >>= readFile
 	Graphics.UI.Awesomium.initialize (defaultConfig { customCss = css, logLevel = Verbose })
 	putStrLn "Creating WebView"
 	wv <- newWebView w h False
 	putStrLn "Loading web page"
-	setBaseDirectory "."
-	loadFile wv "UI.html" ""
+	getDataDir >>= setBaseDirectory
+	loadFile wv "ui/UI.html" ""
 	waitOn wv
 	setTransparent wv True
 	gainFocus wv
