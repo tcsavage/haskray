@@ -11,7 +11,6 @@ maintainer:          cam01005@port.ac.uk
 category:            Graphics
 build-type:          Simple
 cabal-version:       >=1.8
-data-files:          ui/*.html, ui/*.css, ui/*.js, ui/icons/*.png
 data-dir:            frontend-data
 
 flag buildfrontend
@@ -61,6 +60,7 @@ executable HaskRay
     if flag(glview)
       other-modules:       GLDisplay, GLDisplay.Display, GLDisplay.Input, GLDisplay.Renderable GLDisplay.Util, GLDisplay.UI, Settings
       build-depends:       base ==4.5.*, HaskRay, awesomium, time, random, GLUT >= 2.3, OpenGL >=2.6, async, Tensor
+      data-files:          ui/*.html, ui/*.css, ui/*.js, ui/icons/*.png
       cpp-options:         -DGLView
     else
       other-modules:       Settings
