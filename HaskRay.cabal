@@ -18,6 +18,10 @@ flag buildfrontend
   description:         Build the front-end as well as the library
   default:             True
 
+flag glview
+  description:         Include OpenGL viewer in front-end
+  default:             True
+
 library
   exposed-modules:
     HaskRay
@@ -51,32 +55,18 @@ library
 
 executable HaskRay
   main-is:             Main.hs
-  other-modules:       GLDisplay, GLDisplay.Display, GLDisplay.Input, GLDisplay.Renderable GLDisplay.Util, GLDisplay.UI, Settings
-  build-depends:
-    base ==4.5.*,
-    HaskRay,
-    awesomium,
-    mtl,
-    bytestring,
-    split ==0.1.*,
-    parallel ==3.2.*,
-    deepseq,
-    random,
-    MonadRandom,
-    containers,
-    time,
-    GLUT >= 2.3,
-    OpenGL >=2.6,
-    async,
-    Tensor,
-    monad-parallel
-
---  if flag(buildfrontend)
---    build-depends:       base ==4.5.*, HaskRay, bytestring, split ==0.1.*, parallel ==3.2.*, random, MonadRandom, containers, GLUT, OpenGL, async, Tensor
---  else
---    buildable:           False
-  hs-source-dirs:      frontend
-  ghc-options:         -threaded -eventlog -rtsopts -O2 -fwarn-incomplete-patterns
+  if flag(buildfrontend)
+    hs-source-dirs:      frontend
+    ghc-options:         -threaded -eventlog -rtsopts -O2 -fwarn-incomplete-patterns
+    if flag(glview)
+      other-modules:       GLDisplay, GLDisplay.Display, GLDisplay.Input, GLDisplay.Renderable GLDisplay.Util, GLDisplay.UI, Settings
+      build-depends:       base ==4.5.*, HaskRay, awesomium, time, random, GLUT >= 2.3, OpenGL >=2.6, async, Tensor
+      cpp-options:         -DGLView
+    else
+      other-modules:       Settings
+      build-depends:       base ==4.5.*, HaskRay, random
+  else
+    buildable:           False
 
 test-suite properties
   type: exitcode-stdio-1.0

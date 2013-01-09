@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE CPP, OverloadedStrings #-}
 
 module Main where
 
@@ -8,14 +8,16 @@ import System.Random
 import Data.Char
 import Data.Maybe
 import System.IO
-import qualified Data.ByteString.Char8 as B
-import Control.Concurrent.Async
 import Control.Monad
 import Text.Printf
 import Debug.Trace
 
-import GLDisplay
 import Settings
+
+#ifdef GLView
+import Control.Concurrent.Async
+import GLDisplay
+#endif
 
 mesh4 = (Mesh (Vector3 0 (-5) (-5)) [(Triangle (Vertex (Vector3 (-1.000000) (-1.000000) (1.000000)) (Vector3 (-0.579516) (-0.703146) (0.411939)) (Vector2 0 0)) (Vertex (Vector3 (-2.000000) (2.000000) (1.000000)) (Vector3 (-0.616413) (0.616413) (0.489914)) (Vector2 0 0)) (Vertex (Vector3 (-2.000000) (2.000000) (-1.000000)) (Vector3 (-0.590136) (0.590136) (-0.550829)) (Vector2 0 0))), (Triangle (Vertex (Vector3 (-2.000000) (2.000000) (1.000000)) (Vector3 (-0.616413) (0.616413) (0.489914)) (Vector2 0 0)) (Vertex (Vector3 (1.000000) (1.000000) (1.000000)) (Vector3 (0.703146) (0.579516) (0.411939)) (Vector2 0 0)) (Vertex (Vector3 (1.000000) (1.000000) (-1.000000)) (Vector3 (0.651295) (0.469405) (-0.596179)) (Vector2 0 0))), (Triangle (Vertex (Vector3 (1.000000) (1.000000) (1.000000)) (Vector3 (0.703146) (0.579516) (0.411939)) (Vector2 0 0)) (Vertex (Vector3 (1.000000) (-1.000000) (2.000000)) (Vector3 (0.477096) (-0.477096) (0.738060)) (Vector2 0 0)) (Vertex (Vector3 (1.000000) (-1.000000) (-1.000000)) (Vector3 (0.577349) (-0.577349) (-0.577349)) (Vector2 0 0))), (Triangle (Vertex (Vector3 (1.000000) (-1.000000) (2.000000)) (Vector3 (0.477096) (-0.477096) (0.738060)) (Vector2 0 0)) (Vertex (Vector3 (-1.000000) (-1.000000) (1.000000)) (Vector3 (-0.579516) (-0.703146) (0.411939)) (Vector2 0 0)) (Vertex (Vector3 (-1.000000) (-1.000000) (-1.000000)) (Vector3 (-0.469405) (-0.651295) (-0.596179)) (Vector2 0 0))), (Triangle (Vertex (Vector3 (-1.000000) (-1.000000) (-1.000000)) (Vector3 (-0.469405) (-0.651295) (-0.596179)) (Vector2 0 0)) (Vertex (Vector3 (-2.000000) (2.000000) (-1.000000)) (Vector3 (-0.590136) (0.590136) (-0.550829)) (Vector2 0 0)) (Vertex (Vector3 (1.000000) (1.000000) (-1.000000)) (Vector3 (0.651295) (0.469405) (-0.596179)) (Vector2 0 0))), (Triangle (Vertex (Vector3 (1.000000) (-1.000000) (2.000000)) (Vector3 (0.477096) (-0.477096) (0.738060)) (Vector2 0 0)) (Vertex (Vector3 (1.000000) (1.000000) (1.000000)) (Vector3 (0.703146) (0.579516) (0.411939)) (Vector2 0 0)) (Vertex (Vector3 (-2.000000) (2.000000) (1.000000)) (Vector3 (-0.616413) (0.616413) (0.489914)) (Vector2 0 0))), (Triangle (Vertex (Vector3 (-1.000000) (-1.000000) (-1.000000)) (Vector3 (-0.469405) (-0.651295) (-0.596179)) (Vector2 0 0)) (Vertex (Vector3 (-1.000000) (-1.000000) (1.000000)) (Vector3 (-0.579516) (-0.703146) (0.411939)) (Vector2 0 0)) (Vertex (Vector3 (-2.000000) (2.000000) (-1.000000)) (Vector3 (-0.590136) (0.590136) (-0.550829)) (Vector2 0 0))), (Triangle (Vertex (Vector3 (-2.000000) (2.000000) (-1.000000)) (Vector3 (-0.590136) (0.590136) (-0.550829)) (Vector2 0 0)) (Vertex (Vector3 (-2.000000) (2.000000) (1.000000)) (Vector3 (-0.616413) (0.616413) (0.489914)) (Vector2 0 0)) (Vertex (Vector3 (1.000000) (1.000000) (-1.000000)) (Vector3 (0.651295) (0.469405) (-0.596179)) (Vector2 0 0))), (Triangle (Vertex (Vector3 (1.000000) (1.000000) (-1.000000)) (Vector3 (0.651295) (0.469405) (-0.596179)) (Vector2 0 0)) (Vertex (Vector3 (1.000000) (1.000000) (1.000000)) (Vector3 (0.703146) (0.579516) (0.411939)) (Vector2 0 0)) (Vertex (Vector3 (1.000000) (-1.000000) (-1.000000)) (Vector3 (0.577349) (-0.577349) (-0.577349)) (Vector2 0 0))), (Triangle (Vertex (Vector3 (1.000000) (-1.000000) (-1.000000)) (Vector3 (0.577349) (-0.577349) (-0.577349)) (Vector2 0 0)) (Vertex (Vector3 (1.000000) (-1.000000) (2.000000)) (Vector3 (0.477096) (-0.477096) (0.738060)) (Vector2 0 0)) (Vertex (Vector3 (-1.000000) (-1.000000) (-1.000000)) (Vector3 (-0.469405) (-0.651295) (-0.596179)) (Vector2 0 0))), (Triangle (Vertex (Vector3 (1.000000) (-1.000000) (-1.000000)) (Vector3 (0.577349) (-0.577349) (-0.577349)) (Vector2 0 0)) (Vertex (Vector3 (-1.000000) (-1.000000) (-1.000000)) (Vector3 (-0.469405) (-0.651295) (-0.596179)) (Vector2 0 0)) (Vertex (Vector3 (1.000000) (1.000000) (-1.000000)) (Vector3 (0.651295) (0.469405) (-0.596179)) (Vector2 0 0))), (Triangle (Vertex (Vector3 (-1.000000) (-1.000000) (1.000000)) (Vector3 (-0.579516) (-0.703146) (0.411939)) (Vector2 0 0)) (Vertex (Vector3 (1.000000) (-1.000000) (2.000000)) (Vector3 (0.477096) (-0.477096) (0.738060)) (Vector2 0 0)) (Vertex (Vector3 (-2.000000) (2.000000) (1.000000)) (Vector3 (-0.616413) (0.616413) (0.489914)) (Vector2 0 0)))])
 
@@ -121,7 +123,11 @@ readArgs ("-s":s:xs)
     | otherwise = error $ "Samples not a number"
 readArgs ("-r":r:xs) = (RandomGen $ read r) : readArgs xs
 readArgs ("-o":fp:xs) = OutputFile fp : readArgs xs
+#ifdef GLView
 readArgs ("-glview":xs) = OpenGLView : readArgs xs
+#else
+readArgs ("-glview":_) = error "Not compiled with glview enabled"
+#endif
 readArgs args = error ("Unrecognised arguments: " ++ show args)
 
 main :: IO ()
@@ -139,7 +145,9 @@ main = do
     case getFilePath settings of
         Just filepath -> do
             putStrLn $ "Rendering (seed: " ++ (show randomSeed) ++ ")..."
+#ifdef GLView
             when (getOpenGLView settings) $ glDisp rsettings scene pbuf
+#endif
             traceEventIO "Start render/write"
             savePpm filepath pbuf
             traceEventIO "Finished"
