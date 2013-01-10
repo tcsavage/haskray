@@ -8,10 +8,6 @@ cabal-dev
 *.framework
 SourceGraph
 .DS_store
-icons
-
 *.ppm
-
 *.eventlog
-
 *.hp
