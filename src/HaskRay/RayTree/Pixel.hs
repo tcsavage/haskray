@@ -17,7 +17,7 @@ data Pixel = Pixel [Sample] deriving (Show, Eq)
 -- | Builds a ray tree for a pixel.
 tracePixel :: [Ray] -> Render Pixel
 tracePixel rays = traceEvent "tracePixel" $ do
-    samples <- P.mapM traceSample rays
+    samples <- P.mapM (traceSample 1) rays
     return $ Pixel samples
 
 -- | Evaluates the ray tee under a pixel to determine a final 'Colour' value.

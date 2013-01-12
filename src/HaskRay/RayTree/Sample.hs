@@ -19,8 +19,8 @@ data Sample = Background                       -- ^ The ray hit nothing. Evaluat
             | Dead                             -- ^ Dead end sample. Represents a reflection, refraction or global illumation sample killed by russian roulette.
             deriving (Show, Eq)
 
-traceSample :: Ray -> Render Sample
-traceSample ray = traceEvent "traceSample" $ do
+traceSample :: Int -> Ray -> Render Sample
+traceSample depth ray = traceEvent "traceSample" $ do
     obs <- ask
     let os = getObjects obs ray
     procIntersection $ closestIntersectObStruct ray obs
@@ -32,10 +32,12 @@ traceSample ray = traceEvent "traceSample" $ do
         procMaterial obs (Diffuse col) i _ = do
             obs <- ask
             light <- mapM (traceLight i) $ lights obs
-            return $ Diff col light Dead
+            --gi <- traceGI depth i
+            let gi = Dead
+            return $ Diff col light gi
         procMaterial obs (Emissive col _) i _ = return $ Emm col
-        procMaterial obs (Reflective) i _ = traceReflection i
-        procMaterial obs (Transmissive _ _) i ob = traceTransmission i ob
+        procMaterial obs (Reflective) i _ = traceReflection depth i
+        procMaterial obs (Transmissive _ _) i ob = traceTransmission depth i ob
         lights obs = filter isEmissive (getObjects obs ray)
         notLight (_, (Intersection _ _ _ m)) = case m of
             (Emissive _ _) -> False
@@ -43,8 +45,8 @@ traceSample ray = traceEvent "traceSample" $ do
 
 evalSample :: Sample -> Colour
 evalSample Background = Vector3 0 0 0
-evalSample Dead = Vector3 1 1 1
-evalSample (Diff col shadows _) = foldr (add . shadCol) (Vector3 0 0 0) shadows
+evalSample Dead = Vector3 0 0 0
+evalSample (Diff col shadows gi) = add (evalSample gi) $ foldr (add . shadCol) (Vector3 0 0 0) shadows
     where shadCol (Shadow scol) = scale (1/pi) $ col `multColour` scol
 evalSample (Emm col) = col
 evalSample (Reflection sample) = evalSample sample
@@ -55,21 +57,32 @@ evalSample (Refraction trans ref mix) = t `add` r
         t = scale amix $ evalSample trans
         r = scale omix $ evalSample ref
 
-traceReflection :: Intersection -> Render Sample
-traceReflection (Intersection norm point (Ray _ dir) _) = traceEvent "traceReflection" $ do
+traceGI :: Int -> Intersection -> Render Sample
+traceGI 0 _ = return Dead
+traceGI depth int@(Intersection norm point _ _) = do
+    r1 <- fmap (2*pi*) $ getRandomR (0, 1)
+    r2 <- fmap sqrt $ getRandomR (0, 1)
+    let w = norm
+    let u = normalize $ cross (if abs (x3 w) > 0.1 then Vector3 0 1 0 else Vector3 1 0 0) w
+    let v = cross w u
+    let d = normalize $ ((scale (cos r1 * r2) u) `add` (scale (sin r1 *r2) v) `add` (scale (sqrt $ 1-r2) w))
+    traceSample (depth-1) $ Ray point d
+
+traceReflection :: Int -> Intersection -> Render Sample
+traceReflection depth (Intersection norm point (Ray _ dir) _) = traceEvent "traceReflection" $ do
     obs <- ask
-    traceSample ray >>= (return . Reflection)
+    traceSample (depth-1) ray >>= (return . Reflection)
     where
         r = dir `sub` (scale (2 * (norm `dot` dir)) norm)
         ray = Ray point r
 
 -- Trace refraction at entry only.
 -- TODO: fresnel reflection
-traceTransmission :: Intersection -> Object -> Render Sample
-traceTransmission int@(Intersection norm point (Ray _ dir) mat@(Transmissive i m)) ob = traceEvent "traceTransmission" $ do
+traceTransmission :: Int -> Intersection -> Object -> Render Sample
+traceTransmission depth int@(Intersection norm point (Ray _ dir) mat@(Transmissive i m)) ob = traceEvent "traceTransmission" $ do
     obs <- ask
-    samp <- maybe (return Background) traceSample mray2
-    ref <- traceReflection int
+    samp <- maybe (return Background) (traceSample (depth-1)) mray2
+    ref <- traceReflection (depth-1) int
     return $ Refraction samp ref m
     where
         refract nout nin norm point dir = normalize $ (scale (nout/nin) (scale (dir `dot` norm) norm) `add` dir) `sub` (scale (sqrt (1-((nout^^2)*(1-(dir `dot` norm)^^2)/(nin^^2)))) norm)
