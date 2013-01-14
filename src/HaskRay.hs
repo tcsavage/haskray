@@ -71,15 +71,13 @@ savePpm dest (PixBuf (w, h) ps) = withFile dest WriteMode $ \handle -> do
     let colOut (Vector3 r g b) = B.pack $ (toIntStr r) ++ " " ++ (toIntStr g) ++ " " ++ (toIntStr b)
     let rows = splitEvery w ps
     let rowString ps = B.concat $ intersperse (B.pack " ") $ map colOut ps
-    mapM_P (\(r) -> (B.hPutStrLn handle $ rowString r)) rows
+    mapM_ (\(r) -> (B.hPutStrLn handle $ rowString r)) rows
     end <- getCurrentTime
     putStrLn $ printf "Render took %s" (show $ diffUTCTime end start)
     where
         fileHead = "P3\n" ++ show w ++ " " ++ show h ++ "\n255"
         toIntStr n = show $ floor $ ((clamp n) ** (1/2.2)) * 255 + 0.5
         clamp n = if n < 0 then 0 else (if n > 1 then 1 else n)
-
-mapM_P f = P.sequence_ . map f
 
 -- | Render a scene with given settings.
 render :: Settings -> Scene -> PixBuf
