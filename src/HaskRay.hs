@@ -39,7 +39,6 @@ import Data.List
 import Data.List.Split
 import Data.Maybe
 import Data.Time.Clock
-import Control.DeepSeq
 import qualified Control.Monad.Parallel as P
 import Control.Parallel
 import Control.Parallel.Strategies
@@ -59,9 +58,6 @@ import HaskRay.Monad
 
 -- | Simple pixel buffer type.
 data PixBuf = PixBuf (Int, Int) ![Colour] deriving (Show, Eq)
-
-instance NFData (Vector3 a) where
-    rnf a = a `seq` ()
 
 -- | Takes a PixBuf, serialises it to PPM format, and saves it to a file.
 savePpm :: FilePath -> PixBuf -> IO ()
