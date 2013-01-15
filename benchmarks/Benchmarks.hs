@@ -1,6 +1,7 @@
 module Main where
 
 import HaskRay
+import HaskRay.Out
 
 import Criterion.Main
 
@@ -42,6 +43,7 @@ main :: IO ()
 main = do
     randomSeed <- newStdGen
     let settings = Settings 853 480 5 randomSeed
+    let (PixBuf (w, h) cs) = render settings scene
     defaultMain
         [bgroup "render"
             [bench "render" $ whnf (\s -> render settings s) scene
@@ -51,4 +53,8 @@ main = do
         --    [bench "render" $ whnfIO $ (\s -> writeFun (render settings) s) scene
         --    ,bench "render (unopt)" $ whnfIO $ (\s -> writeFun (renderUnOpt settings) s) scene
         --    ]
+        ,bgroup "toRepa"
+            [bench "expendList -> repa" $ whnf (\s -> toRepa (w,h) s) cs
+            ,bench "repaV -> 3map -> interleave" $ whnf (\s -> toRepa' (w,h) s) cs
+            ]
         ]
