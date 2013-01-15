@@ -74,6 +74,7 @@ toRepa'' (PixBuf (w, h) cs) = runIdentity $ R.computeP $ R.traverse colourArray 
                 getFromZ 0 = x3 $ lup (Z :. x :. y)
                 getFromZ 1 = y3 $ lup (Z :. x :. y)
                 getFromZ 2 = z3 $ lup (Z :. x :. y)
+                getFromZ _ = error "Colour component index out of range"
 
 toRepa :: PixBuf -> Array U DIM3 Double
 toRepa (PixBuf (w, h) cs) = (R.fromListUnboxed shape) $ expandColours cs
