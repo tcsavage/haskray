@@ -30,21 +30,6 @@ examineTreeAt,
 module HaskRay.Parser
 ) where
 
-import System.IO
-import System.Random (mkStdGen, StdGen)
-import Control.Monad.Random
-import qualified Debug.Trace as DT
-import qualified Data.ByteString as BS
-import qualified Data.ByteString.Char8 as B
-import Data.List
-import Data.List.Split
-import Data.Maybe
-import Data.Time.Clock
-import qualified Control.Monad.Parallel as P
-import Control.Parallel
-import Control.Parallel.Strategies
-import Text.Printf
-
 import HaskRay.Vector
 import HaskRay.Material
 import HaskRay.Geometry

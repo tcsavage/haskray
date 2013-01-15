@@ -8,17 +8,13 @@ import qualified Data.Array.Repa as R
 import Data.Array.Repa (Array, U, D, Z(..), DIM1, DIM2, DIM3, (:.)(..))
 import Data.Array.Repa.Repr.Vector
 import Data.Array.Repa.IO.BMP
-import Data.Word
-import System.IO
-import Text.Printf
-
-import qualified Debug.Trace as DT
-import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as B
-import Data.List
-import Data.List.Split
-import Data.Maybe
-import Data.Time.Clock
+import Data.List (intersperse)
+import Data.List.Split (splitEvery)
+import Data.Time.Clock (getCurrentTime, diffUTCTime)
+import Data.Word (Word8)
+import System.IO (withFile, IOMode(WriteMode))
+import Text.Printf
 
 -- | Simple pixel buffer type.
 data PixBuf = PixBuf (Int, Int) ![Colour] deriving (Show, Eq)
