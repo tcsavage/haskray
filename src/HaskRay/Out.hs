@@ -9,6 +9,16 @@ import Data.Array.Repa (Array, U, D, Z(..), DIM1, DIM2, DIM3, (:.)(..))
 import Data.Array.Repa.Repr.Vector
 import Data.Array.Repa.IO.BMP
 import Data.Word
+import System.IO
+import Text.Printf
+
+import qualified Debug.Trace as DT
+import qualified Data.ByteString as BS
+import qualified Data.ByteString.Char8 as B
+import Data.List
+import Data.List.Split
+import Data.Maybe
+import Data.Time.Clock
 
 -- | Simple pixel buffer type.
 data PixBuf = PixBuf (Int, Int) ![Colour] deriving (Show, Eq)
@@ -29,8 +39,8 @@ savePpm dest (PixBuf (w, h) ps) = withFile dest WriteMode $ \handle -> do
         toIntStr n = show $ floor $ ((clamp n) ** (1/2.2)) * 255 + 0.5
         clamp n = if n < 0 then 0 else (if n > 1 then 1 else n)
 
-saveBMP :: (Int, Int) -> [Colour] -> FilePath -> IO ()
-saveBMP (w,h) cs path = R.computeP arr >>= (writeImageToBMP path)
+saveBMP :: PixBuf -> FilePath -> IO ()
+saveBMP (PixBuf (w, h) cs) path = R.computeP arr >>= (writeImageToBMP path)
     where
         arr :: Array D DIM2 (Word8, Word8, Word8)
         arr = R.backpermute shape flop $ R.map conv $ fromListVector shape cs
@@ -38,8 +48,8 @@ saveBMP (w,h) cs path = R.computeP arr >>= (writeImageToBMP path)
         flop (Z :. i :. j) = Z :. h-i-1 :. j
         conv (Vector3 r g b) = (toEnum $ correctColour r, toEnum $ correctColour g, toEnum $ correctColour b)
 
-toRepa' :: (Int, Int) -> [Colour] -> Array U DIM3 Double
-toRepa' (w, h) cs = runIdentity $ do
+toRepa' :: PixBuf -> Array U DIM3 Double
+toRepa' (PixBuf (w, h) cs) = runIdentity $ do
     let red = R.map x3 colourArray
     let green = R.map y3 colourArray
     let blue = R.map z3 colourArray
@@ -51,8 +61,8 @@ toRepa' (w, h) cs = runIdentity $ do
         shape = Z :. w :. h :. (3::Int)
         colourArray = fromListVector flatshape cs
 
-toRepa'' :: (Int, Int) -> [Colour] -> Array U DIM3 Double
-toRepa'' (w, h) cs = runIdentity $ R.computeP $ R.traverse colourArray (const shape') magic
+toRepa'' :: PixBuf -> Array U DIM3 Double
+toRepa'' (PixBuf (w, h) cs) = runIdentity $ R.computeP $ R.traverse colourArray (const shape') magic
     where
         colourArray :: Array V DIM2 Colour
         colourArray = fromListVector (Z :. w :. h) cs
@@ -65,8 +75,8 @@ toRepa'' (w, h) cs = runIdentity $ R.computeP $ R.traverse colourArray (const sh
                 getFromZ 1 = y3 $ lup (Z :. x :. y)
                 getFromZ 2 = z3 $ lup (Z :. x :. y)
 
-toRepa :: (Int, Int) -> [Colour] -> Array U DIM3 Double
-toRepa (w, h) = (R.fromListUnboxed shape) . expandColours
+toRepa :: PixBuf -> Array U DIM3 Double
+toRepa (PixBuf (w, h) cs) = (R.fromListUnboxed shape) $ expandColours cs
     where
         shape = Z :. w :. h :. (3::Int)
 

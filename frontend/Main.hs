@@ -150,8 +150,7 @@ main = do
 #endif
             traceEventIO "Start render/write"
             --savePpm filepath pbuf
-            let (PixBuf wh cs) = pbuf
-            saveBMP wh cs filepath
+            saveBMP pbuf filepath
             traceEventIO "Finished"
         otherwise -> error "No output file given"
 
