@@ -149,7 +149,9 @@ main = do
             when (getOpenGLView settings) $ glDisp rsettings scene pbuf
 #endif
             traceEventIO "Start render/write"
-            savePpm filepath pbuf
+            --savePpm filepath pbuf
+            let (PixBuf wh cs) = pbuf
+            saveBMP wh cs filepath
             traceEventIO "Finished"
         otherwise -> error "No output file given"
 
