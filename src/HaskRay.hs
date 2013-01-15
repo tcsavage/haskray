@@ -43,13 +43,15 @@ import HaskRay.Parser
 import HaskRay.Scene
 import HaskRay.Monad
 
+import qualified Control.Monad.Parallel as P
+
 -- | Render a scene with given settings.
 render :: Settings -> Scene -> PixBuf
 render settings@(Settings w h _ rand) (Scene os view) = PixBuf (w, h) pixels
     where
         obs = mkObStruct os
         sampleRays = makeCameraRays settings view -- [[Ray]]
-        pixels = runRender (mapM (\x -> tracePixel x >>= (return . evalPixel)) sampleRays) obs rand
+        pixels = runRender (P.mapM (\x -> tracePixel x >>= (return . evalPixel)) sampleRays) obs rand
 
 -- | Render a scene with given settings. (Not optimised)
 renderUnOpt :: Settings -> Scene -> PixBuf
