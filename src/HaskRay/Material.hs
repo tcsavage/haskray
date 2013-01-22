@@ -25,4 +25,12 @@ correctColour n = floor $ ((clamp n) ** (1/2.2)) * 255 + 0.5
         clamp n = if n < 0 then 0 else (if n > 1 then 1 else n)
 
 -- | Defines surface properties.
-data Material = Diffuse Colour | Emissive Colour Scalar | Reflective | Transmissive Double Double deriving (Show, Read, Eq)
+data Material = Diffuse Colour | Emissive Colour Scalar | Reflective | Transmissive Double Double | Texture deriving (Show, Read, Eq)
+
+--data Texture = 
+
+--class MatFun a where
+--	splat :: Vec3 -> a
+
+--instance MatFun Material where
+--	splat = const

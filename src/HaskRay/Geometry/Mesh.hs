@@ -10,6 +10,7 @@ module HaskRay.Geometry.Mesh
 	Triangle(..),
 	translateTriangle,
 	pointOnTriangle,
+	pointToUV,
 
 	-- *** Mesh
 	Mesh(..)
@@ -45,6 +46,21 @@ translateTriangle vec (Triangle v1 v2 v3) = Triangle (tf v1) (tf v2) (tf v3)
 pointOnTriangle :: Vec2 -> Triangle -> Vec3
 pointOnTriangle (Vector2 u v) (Triangle (Vertex p1 _ _) (Vertex p2 _ _) (Vertex p3 _ _)) = ((1-u-v) `scale` p1) `add` (u `scale` p2) `add` (v `scale` p3)
 
+pointToUV :: Vec3 -> Triangle -> Vec2
+pointToUV p (Triangle (Vertex a _ _) (Vertex b _ _) (Vertex c _ _)) = Vector2 u v
+	where
+		v0 = c `sub` a
+		v1 = b `sub` a
+		v2 = p `sub` a
+		dot00 = v0 `dot` v0
+		dot01 = v0 `dot` v1
+		dot02 = v0 `dot` v2
+		dot11 = v1 `dot` v1
+		dot12 = v1 `dot` v2
+		invDenom = 1 / (dot00 * dot11 - dot01 * dot01)
+		u = (dot11 * dot02 - dot01 * dot12) * invDenom
+		v = (dot00 * dot12 - dot01 * dot02) * invDenom
+
 instance Shape Triangle where
 	--intersect ray (Triangle (Vertex p1 _ _) (Vertex p2 _ _) (Vertex p3 _ _), m) = do
 	--	is@(_, (Intersection _ p _ _)) <- intersect ray (plane, m)
@@ -61,27 +77,17 @@ instance Shape Triangle where
 	--		pointInTriangle p a b c = (testSideage p a b c) && (testSideage p b a c) && (testSideage p c a b)
 
 	-- Barycentric technique. From <http://www.blackpawn.com/texts/pointinpoly/default.html>
-	intersect ray (Triangle (Vertex p1 _ _ ) (Vertex p2 _ _ ) (Vertex p3 _ _ ), m) = do
+	intersect ray (tri@(Triangle (Vertex p1 _ _ ) (Vertex p2 _ _ ) (Vertex p3 _ _ )), m) = do
 		is@(_, (Intersection _ p _ _)) <- intersect ray (plane, m)
-		if pointInTriangle p p1 p2 p3 then Just is else Nothing
+		if pointInTriangle p then Just is else Nothing
 		where
 			plane = Plane norm dist
 				where
 					norm = normalize ((p2 `sub` p1) `cross` (p3 `sub` p1))
 					dist = negate $ norm `dot` p1
-			pointInTriangle p a b c = (u >= 0) && (v >= 0) && (u + v < 1)
+			pointInTriangle p = (u >= 0) && (v >= 0) && (u + v < 1)
 				where
-					v0 = c `sub` a
-					v1 = b `sub` a
-					v2 = p `sub` a
-					dot00 = v0 `dot` v0
-					dot01 = v0 `dot` v1
-					dot02 = v0 `dot` v2
-					dot11 = v1 `dot` v1
-					dot12 = v1 `dot` v2
-					invDenom = 1 / (dot00 * dot11 - dot01 * dot01)
-					u = (dot11 * dot02 - dot01 * dot12) * invDenom
-					v = (dot00 * dot12 - dot01 * dot02) * invDenom
+					(Vector2 u v) = pointToUV p tri
 
 	center (Triangle (Vertex v1 _ _) (Vertex v2 _ _) (Vertex v3 _ _)) = scale (1/3) (v1 `add` v2 `add` v3)
 	boundingBox (Triangle (Vertex v1 _ _) (Vertex v2 _ _) (Vertex v3 _ _)) = BoundingBox maxp minp

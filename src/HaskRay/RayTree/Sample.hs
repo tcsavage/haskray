@@ -33,6 +33,7 @@ traceSample ray = traceEvent "traceSample" $ do
             obs <- ask
             light <- mapM (traceLight i) $ lights obs
             return $ Diff col light Dead
+        procMaterial obs (Texture) i@(Intersection norm pos ray material) ob = procMaterial obs (Diffuse norm) (Intersection norm pos ray (Diffuse norm)) ob
         procMaterial obs (Emissive col _) i _ = return $ Emm col
         procMaterial obs (Reflective) i _ = traceReflection i
         procMaterial obs (Transmissive _ _) i ob = traceTransmission i ob
