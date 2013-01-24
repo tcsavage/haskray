@@ -12,6 +12,7 @@ module HaskRay.Geometry
 	Vertex(..),
 	Triangle(..),
 	Mesh(..),
+	translateTriangle,
 
 	-- ** Objects
 	Object(..),
@@ -27,6 +28,7 @@ module HaskRay.Geometry
 	centerOb,
 	isInfiniteOb,
 	boundingBoxOb,
+	mapTextureOb,
 
 	-- ** Bounding Box
 	BoundingBox(..),

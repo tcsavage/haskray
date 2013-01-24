@@ -34,3 +34,4 @@ instance Shape Sphere where
 			is = sortWith (\(t, _) -> t) $ map (\t -> (t,intersection_at_time t)) times
 	center (Sphere c _) = c
 	boundingBox (Sphere c r) = BoundingBox (c `add` pure r) (c `sub` pure r)
+	mapTexture = error "Can't texture sphere (yet)"

@@ -93,6 +93,7 @@ instance Shape Triangle where
 	boundingBox (Triangle (Vertex v1 _ _) (Vertex v2 _ _) (Vertex v3 _ _)) = BoundingBox maxp minp
 		where
 			(minp, maxp) = minmaxPoints [v1,v2,v3]
+	mapTexture tri point = pointToUV point tri
 
 -- | A mesh is a list of triangles.
 data Mesh = Mesh Vec3 [Triangle] deriving (Show, Read, Eq, Typeable)
@@ -107,3 +108,4 @@ instance Shape Mesh where
 			tris = map (translateTriangle pos) ts
 			verts = join $ map (\(Triangle (Vertex v1 _ _) (Vertex v2 _ _) (Vertex v3 _ _)) -> [v1,v2,v3]) tris
 			(minp, maxp) = minmaxPoints verts
+	mapTexture = error "Can't texture mesh (yet)"

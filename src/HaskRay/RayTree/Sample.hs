@@ -33,7 +33,10 @@ traceSample ray = traceEvent "traceSample" $ do
             obs <- ask
             light <- mapM (traceLight i) $ lights obs
             return $ Diff col light Dead
-        procMaterial obs (Texture) i@(Intersection norm pos ray material) ob = procMaterial obs (Diffuse norm) (Intersection norm pos ray (Diffuse norm)) ob
+        procMaterial obs (Texture tex) (Intersection norm pos ray _) ob = procMaterial obs mat (Intersection norm pos ray mat) ob
+            where
+                mat = Diffuse $ texUV tex $ mapTextureOb ob pos
+        --procMaterial obs (Texture tex) (Intersection norm pos ray _) ob = return $ Diff (texUV tex $ mapTextureOb ob pos) [] Dead
         procMaterial obs (Emissive col _) i _ = return $ Emm col
         procMaterial obs (Reflective) i _ = traceReflection i
         procMaterial obs (Transmissive _ _) i ob = traceTransmission i ob
@@ -45,6 +48,7 @@ traceSample ray = traceEvent "traceSample" $ do
 evalSample :: Sample -> Colour
 evalSample Background = Vector3 0 0 0
 evalSample Dead = Vector3 1 1 1
+evalSample (Diff col [] _) = col
 evalSample (Diff col shadows _) = foldr (add . shadCol) (Vector3 0 0 0) shadows
     where shadCol (Shadow scol) = scale (1/pi) $ col `multColour` scol
 evalSample (Emm col) = col

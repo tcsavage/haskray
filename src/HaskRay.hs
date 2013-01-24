@@ -5,6 +5,8 @@ module HaskRay.Vector,
 -- * Material
 Colour(..),
 Material(..),
+Texture,
+texture,
 -- * Geometry
 module HaskRay.Geometry,
 -- * Octree
