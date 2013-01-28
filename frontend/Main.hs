@@ -84,8 +84,8 @@ mesh = Mesh (Vector3 8 (-5) (-5)) [Triangle v1 v2 v3]
         v2 = Vertex (Vector3 3 0 0) (Vector3 0 0 0) (Vector2 0 0)
         v3 = Vertex (Vector3 0 3 0) (Vector3 0 0 0) (Vector2 0 0)
 
-objects :: [Object]
-objects = [Object (Plane (normalize (Vector3 0 (-1) 0)) 5) (Diffuse (Vector3 0.8 0.8 0.8))
+objects :: Texture -> [Object]
+objects tex = [Object (Plane (normalize (Vector3 0 (-1) 0)) 5) (Diffuse (Vector3 0.8 0.8 0.8))
         ,Object (Plane (normalize (Vector3 0 (1) 0)) 18) (Diffuse (Vector3 0.8 0.8 0.8))
         ,Object (Plane (normalize (Vector3 1 0 0)) (14)) (Diffuse (Vector3 0.8 0 0))
         ,Object (Plane (normalize (Vector3 (-1) 0 0)) (14)) (Diffuse (Vector3 0 0.8 0))
@@ -98,7 +98,7 @@ objects = [Object (Plane (normalize (Vector3 0 (-1) 0)) 5) (Diffuse (Vector3 0.8
         --,Object (Sphere (Vector3 2 (-15) 2) 1) (Emissive (Vector3 1 0 0) 400)
         ,Object (Sphere (Vector3 (2) (-15) (-8)) 1) (Emissive (Vector3 1 0 0) 400)
         --,Object mesh3 (Diffuse (Vector3 1 0.5 0))
-        ,Object texTri (Texture texture)
+        ,Object texTri (Texture tex)
         ]
 
 camera :: View
@@ -108,9 +108,6 @@ camera = View
     ,upVec = (Vector3 0 (-1) 0)
     ,fov = 30
     }
-
-defscene :: Scene
-defscene = Scene objects camera
 
 testSettings = Settings 853 480 5 (mkStdGen 2345)
 
@@ -143,7 +140,8 @@ main = do
     let settings = readArgs opts
     let rsettings = fromJust $ fromSettingList randomSeed $ readArgs opts
     scenestr <- getContents
-    let scene = optimiseScene defscene
+    tex <- loadTexture "grid.bmp"
+    let scene = optimiseScene (Scene (objects tex) camera)
     --let scene = if null scenestr then defscene else deserialize scenestr
     let pbuf = render rsettings scene
     case getFilePath settings of
@@ -158,8 +156,8 @@ main = do
             traceEventIO "Finished"
         otherwise -> error "No output file given"
 
-testAnim (v,n) = do
-    let view = View {position = (Vector3 v (-10) (-80)),lookAt = (Vector3 0 (-5) 10),upVec = (Vector3 0 (-1) 0),fov = 30}
-    let ofile = printf "anim5/testanim_%03d.ppm" (n :: Int)
-    savePpm ofile $ render testSettings (Scene (objects) view)
-    putStrLn $ '>' : show n
+--testAnim (v,n) = do
+--    let view = View {position = (Vector3 v (-10) (-80)),lookAt = (Vector3 0 (-5) 10),upVec = (Vector3 0 (-1) 0),fov = 30}
+--    let ofile = printf "anim5/testanim_%03d.ppm" (n :: Int)
+--    savePpm ofile $ render testSettings (Scene (objects tex) view)
+--    putStrLn $ '>' : show n
