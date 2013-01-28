@@ -41,9 +41,6 @@ width, height :: Num a => a
 width = 50
 height = 50
 
---texture :: [[Colour]]
---texture = [Vector3 r 0 b| r <- [0,(1/width)..1], b <- [0,(1/height)..1]]
-
 saveBMPTex :: Array V DIM2 Colour -> FilePath -> IO ()
 saveBMPTex inp path = R.computeP arr >>= (writeImageToBMP path)
     where
