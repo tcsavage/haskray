@@ -67,10 +67,10 @@ texture = runIdentity $ R.computeP $ R.traverse empty (const $ R.extent empty) m
         magic _ (Z :. x :. y) = Vector3 ((fromIntegral x)/(fromIntegral width)) ((((fromIntegral x)/(fromIntegral width)) + ((fromIntegral y)/(fromIntegral height))) / 4) ((fromIntegral y)/(fromIntegral height))
 
 texUV :: Array V DIM2 Colour -> Vec2 -> Colour
-texUV tex (Vector2 u v)
-    | u > 1 || v > 1 || u < 0 || v < 0 = error "UV coords out of range"
+texUV tex t@(Vector2 u v)
+    | u > 1 || v > 1 || u < 0 || v < 0 = Vector3 0 0 0 -- Default to black when out of range
     | otherwise = R.index tex (Z :. u' :. v')
     where
         (Z :. w :. h) = R.extent tex
-        u' = floor $ u*(fromIntegral w)
-        v' = floor $ v*(fromIntegral h)
+        u' = floor $ u*(fromIntegral (w-1))
+        v' = floor $ v*(fromIntegral (h-1))
