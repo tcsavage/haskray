@@ -2,6 +2,7 @@ module HaskRay.Material where
 
 import HaskRay.Vector
 
+import Control.Applicative hiding (empty)
 import Control.Monad.Identity
 import qualified Data.Array.Repa as R
 import Data.Array.Repa (Array, U, D, Z(..), DIM1, DIM2, DIM3, (:.)(..))
@@ -49,6 +50,15 @@ saveBMPTex inp path = R.computeP arr >>= (writeImageToBMP path)
         arr :: Array D DIM2 (Word8, Word8, Word8)
         arr = R.map conv inp
         conv (Vector3 r g b) = (toEnum $ correctColour r, toEnum $ correctColour g, toEnum $ correctColour b)
+
+loadTexture :: FilePath -> IO (Array V DIM2 Colour)
+loadTexture path = do
+    r <- readImageFromBMP path
+    R.computeP $ R.map conv (arr r)
+    where
+        arr (Left err) = error (path ++ ": " ++ (show err))
+        arr (Right arr) = arr
+        conv (r, g, b) = (/255) <$> (fromIntegral <$> (Vector3 r g b))
 
 empty :: Array U DIM2 Int
 empty = R.fromListUnboxed (Z :. width :. height) [1..width*height]
