@@ -7,6 +7,7 @@ Colour(..),
 Material(..),
 Texture,
 texture,
+loadTexture,
 -- * Geometry
 module HaskRay.Geometry,
 -- * Octree
