@@ -11,6 +11,7 @@ module HaskRay.Geometry.Mesh
 	translateTriangle,
 	pointOnTriangle,
 	pointToUV,
+	textureSpace,
 
 	-- *** Mesh
 	Mesh(..)
@@ -23,6 +24,7 @@ import HaskRay.Geometry.Classes
 import HaskRay.Geometry.Plane
 import HaskRay.Geometry.Ray
 
+import Control.Applicative
 import Control.Monad
 import Data.Typeable
 
@@ -46,6 +48,7 @@ translateTriangle vec (Triangle v1 v2 v3) = Triangle (tf v1) (tf v2) (tf v3)
 pointOnTriangle :: Vec2 -> Triangle -> Vec3
 pointOnTriangle (Vector2 u v) (Triangle (Vertex p1 _ _) (Vertex p2 _ _) (Vertex p3 _ _)) = ((1-u-v) `scale` p1) `add` (u `scale` p2) `add` (v `scale` p3)
 
+-- | Project a 3D world-space coordinate into a 2D triangle-space coordinate.
 pointToUV :: Vec3 -> Triangle -> Vec2
 pointToUV p (Triangle (Vertex a _ _) (Vertex b _ _) (Vertex c _ _)) = Vector2 u v
 	where
@@ -60,6 +63,14 @@ pointToUV p (Triangle (Vertex a _ _) (Vertex b _ _) (Vertex c _ _)) = Vector2 u 
 		invDenom = 1 / (dot00 * dot11 - dot01 * dot01)
 		u = (dot11 * dot02 - dot01 * dot12) * invDenom
 		v = (dot00 * dot12 - dot01 * dot02) * invDenom
+
+-- | Transform a triagnle-space coordinate into texture-space.
+textureSpace :: Vec2 -> Triangle -> Vec2
+textureSpace coord@(Vector2 u v) (Triangle (Vertex _ _ a@(Vector2 ua va)) (Vertex _ _ b@(Vector2 _ vb)) (Vertex _ _ c@(Vector2 uc _))) = a `add` (scale v ab) `add` (scale u ac)
+	where
+		adj = Vector2 (uc-ua) (vb-va)
+		ab = b `sub` a
+		ac = c `sub` a
 
 instance Shape Triangle where
 	--intersect ray (Triangle (Vertex p1 _ _) (Vertex p2 _ _) (Vertex p3 _ _), m) = do
@@ -93,7 +104,8 @@ instance Shape Triangle where
 	boundingBox (Triangle (Vertex v1 _ _) (Vertex v2 _ _) (Vertex v3 _ _)) = BoundingBox maxp minp
 		where
 			(minp, maxp) = minmaxPoints [v1,v2,v3]
-	mapTexture tri point = pointToUV point tri
+	--mapTexture tri point = pointToUV point tri
+	mapTexture tri point = textureSpace (pointToUV point tri) tri
 
 -- | A mesh is a list of triangles.
 data Mesh = Mesh Vec3 [Triangle] deriving (Show, Read, Eq, Typeable)
