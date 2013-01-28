@@ -11,5 +11,4 @@ SourceGraph
 *.ppm
 *.eventlog
 *.hp
-
-*.bmp
+test.bmp

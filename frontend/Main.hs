@@ -140,7 +140,7 @@ main = do
     let settings = readArgs opts
     let rsettings = fromJust $ fromSettingList randomSeed $ readArgs opts
     scenestr <- getContents
-    tex <- loadTexture "grid.bmp"
+    tex <- loadTexture "tex-uvgrid.bmp"
     let scene = optimiseScene (Scene (objects tex) camera)
     --let scene = if null scenestr then defscene else deserialize scenestr
     let pbuf = render rsettings scene
