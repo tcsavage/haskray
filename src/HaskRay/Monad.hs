@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 
 module HaskRay.Monad
+{-# WARNING "The Rand StdGen instance of MonadParallel violates the expectation that bindM2 is equivelant to \\f ma mb-> do {a <- ma; b <- mb; f a b}" #-}
 (Render
 ,runRender
 ,module Control.Monad.Reader
@@ -22,7 +23,7 @@ import Debug.Trace
 -- | Render monad type alias.
 type Render a = ReaderT ObjectStructure (Rand StdGen) a
 
--- Doesn't produce same result as @ma >>= (\a -> mb >>= (\b -> f a b))@
+-- | Doesn't produce same result as @ma >>= (\a -> mb >>= (\b -> f a b))@
 instance MonadParallel (Rand StdGen) where
     bindM2 f ma mb = do
         split1 <- getSplit
