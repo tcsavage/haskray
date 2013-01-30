@@ -93,7 +93,7 @@ objects tex = [Object (Plane (normalize (Vector3 0 (-1) 0)) 5) (Diffuse (Vector3
         --,Object (Sphere (Vector3 1 1 1) 3) (Transmissive 1.05 0.9)
         ,Object (Sphere (Vector3 5 1 10) 4) (Reflective)
         --,Object (Sphere (Vector3 (-8) 0 8) 5) (Diffuse (Vector3 0 1 0))
-        ,Object (Sphere (Vector3 (-8) 0 8) 5) (Diffuse (Vector3 0 1 0))
+        ,Object (Sphere (Vector3 (-8) 0 8) 5) (Texture tex)
         ,Object (Sphere (Vector3 8 3 4) 2) (Diffuse (Vector3 1 1 0))
         --,Object (Sphere (Vector3 2 (-15) 2) 1) (Emissive (Vector3 1 0 0) 400)
         ,Object (Sphere (Vector3 (2) (-15) (-8)) 1) (Emissive (Vector3 1 0 0) 400)
@@ -140,7 +140,7 @@ main = do
     let settings = readArgs opts
     let rsettings = fromJust $ fromSettingList randomSeed $ readArgs opts
     scenestr <- getContents
-    tex <- loadTexture "tex-uvgrid.bmp"
+    tex <- loadTexture "tex-spheremap.bmp"
     let scene = optimiseScene (Scene (objects tex) camera)
     --let scene = if null scenestr then defscene else deserialize scenestr
     let pbuf = render rsettings scene
