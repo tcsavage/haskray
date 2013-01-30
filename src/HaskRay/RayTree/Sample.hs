@@ -35,7 +35,7 @@ traceSample ray = traceEvent "traceSample" $ do
             return $ Diff col light Dead
         procMaterial obs (Texture tex) (Intersection norm pos ray _) ob = procMaterial obs mat (Intersection norm pos ray mat) ob
             where
-                mat = Diffuse $ texUV tex $ mapTextureOb ob pos
+                mat = Diffuse $ indexTextureUV tex $ mapTextureOb ob pos
         procMaterial obs (Emissive col _) i _ = return $ Emm col
         procMaterial obs (Reflective) i _ = traceReflection i
         procMaterial obs (Transmissive _ _) i ob = traceTransmission i ob

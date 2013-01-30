@@ -6,7 +6,6 @@ module HaskRay.Vector,
 Colour(..),
 Material(..),
 Texture,
-texture,
 loadTexture,
 -- * Geometry
 module HaskRay.Geometry,
