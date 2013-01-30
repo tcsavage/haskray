@@ -71,20 +71,6 @@ textureSpace coord@(Vector2 u v) (Triangle (Vertex _ _ a@(Vector2 ua va)) (Verte
 		ac = c `sub` a
 
 instance Shape Triangle where
-	--intersect ray (Triangle (Vertex p1 _ _) (Vertex p2 _ _) (Vertex p3 _ _), m) = do
-	--	is@(_, (Intersection _ p _ _)) <- intersect ray (plane, m)
-	--	if pointInTriangle p p1 p2 p3 then return is else Nothing
-	--	where
-	--		plane = Plane norm dist
-	--			where
-	--				norm = normalize ((p2 `sub` p1) `cross` (p3 `sub` p1))
-	--				dist = norm `dot` p1
-	--		testSideage p1 p2 a b = (cp1 `dot` cp2) >= 0
-	--			where
-	--				cp1 = (b `sub` a) `cross` (p1 `sub` a)
-	--				cp2 = (b `sub` a) `cross` (p2 `sub` a)
-	--		pointInTriangle p a b c = (testSideage p a b c) && (testSideage p b a c) && (testSideage p c a b)
-
 	-- Barycentric technique. From <http://www.blackpawn.com/texts/pointinpoly/default.html>
 	intersect ray (tri@(Triangle (Vertex p1 _ _ ) (Vertex p2 _ _ ) (Vertex p3 _ _ )), m) = do
 		is@(_, (Intersection _ p _ _)) <- intersect ray (plane, m)
@@ -102,7 +88,6 @@ instance Shape Triangle where
 	boundingBox (Triangle (Vertex v1 _ _) (Vertex v2 _ _) (Vertex v3 _ _)) = BoundingBox maxp minp
 		where
 			(minp, maxp) = minmaxPoints [v1,v2,v3]
-	--mapTexture tri point = pointToUV point tri
 	mapTexture tri point = textureSpace (pointToUV point tri) tri
 
 -- | A mesh is a list of triangles.
