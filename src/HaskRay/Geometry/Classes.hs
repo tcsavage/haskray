@@ -22,3 +22,5 @@ class (Eq s, Show s, Typeable s) => Shape s where
 	isInfinite = const False
 	-- | Calculates the axially-aligned bounding box of the shape
 	boundingBox :: s -> BoundingBox
+	-- | Project a texture onto the shape's surface.
+	mapTexture :: s -> Vec3 -> Vec2

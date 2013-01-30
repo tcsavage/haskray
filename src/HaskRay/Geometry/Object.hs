@@ -12,6 +12,7 @@ module HaskRay.Geometry.Object
 	centerOb,
 	isInfiniteOb,
 	boundingBoxOb,
+	mapTextureOb,
 	filterSphere,
 	expandMeshes,
 	boundObjects
@@ -70,6 +71,9 @@ isInfiniteOb (Object s _) = isInfinite s
 
 boundingBoxOb :: Object -> BoundingBox
 boundingBoxOb (Object s _) = boundingBox s
+
+mapTextureOb :: Object -> Vec3 -> Vec2
+mapTextureOb (Object s _) = mapTexture s
 
 -- | Get a lost of spheres from a list of objects.
 filterSphere :: [Object] -> [Sphere]

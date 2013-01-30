@@ -34,3 +34,8 @@ instance Shape Sphere where
 			is = sortWith (\(t, _) -> t) $ map (\t -> (t,intersection_at_time t)) times
 	center (Sphere c _) = c
 	boundingBox (Sphere c r) = BoundingBox (c `add` pure r) (c `sub` pure r)
+	mapTexture (Sphere center rad) p = Vector2 u v
+		where
+			d = normalize (center `sub` p)
+			u = 0.5 + (atan2 (z3 d) (x3 d) / (2*pi))
+			v = 0.5 - 2 * (asin (y3 d) / (2*pi))

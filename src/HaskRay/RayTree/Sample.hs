@@ -35,6 +35,9 @@ traceSample depth ray = traceEvent "traceSample" $ do
             --gi <- traceGI depth i
             let gi = Dead
             return $ Diff col light gi
+        procMaterial obs (Texture tex) (Intersection norm pos ray _) ob = procMaterial obs mat (Intersection norm pos ray mat) ob
+            where
+                mat = Diffuse $ indexTextureUV tex $ mapTextureOb ob pos
         procMaterial obs (Emissive col _) i _ = return $ Emm col
         procMaterial obs (Reflective) i _ = traceReflection depth i
         procMaterial obs (Transmissive _ _) i ob = traceTransmission depth i ob
@@ -46,6 +49,7 @@ traceSample depth ray = traceEvent "traceSample" $ do
 evalSample :: Sample -> Colour
 evalSample Background = Vector3 0 0 0
 evalSample Dead = Vector3 0 0 0
+evalSample (Diff col [] _) = col
 evalSample (Diff col shadows gi) = add (evalSample gi) $ foldr (add . shadCol) (Vector3 0 0 0) shadows
     where shadCol (Shadow scol) = scale (1/pi) $ col `multColour` scol
 evalSample (Emm col) = col

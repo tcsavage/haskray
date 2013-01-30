@@ -33,3 +33,4 @@ instance Shape Plane where
 	center (Plane normal d) = scale d normal
 	isInfinite = const True
 	boundingBox = error "Infinite plane"
+	mapTexture = error "Can't texture plane (yet)"
