@@ -10,8 +10,6 @@ module HaskRay.Geometry.Mesh
 	Triangle(..),
 	translateTriangle,
 	pointOnTriangle,
-	pointToUV,
-	textureSpace,
 
 	-- *** Mesh
 	Mesh(..)
