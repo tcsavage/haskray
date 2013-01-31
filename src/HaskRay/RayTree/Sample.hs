@@ -32,8 +32,8 @@ traceSample depth ray = traceEvent "traceSample" $ do
         procMaterial obs (Diffuse col) i _ = do
             obs <- ask
             light <- mapM (traceLight i) $ lights obs
-            --gi <- traceGI depth i
-            let gi = Dead
+            gi <- traceGI depth i
+            --let gi = Dead
             return $ Diff col light gi
         procMaterial obs (Texture tex) (Intersection norm pos ray _) ob = procMaterial obs mat (Intersection norm pos ray mat) ob
             where
@@ -50,7 +50,7 @@ evalSample :: Sample -> Colour
 evalSample Background = Vector3 0 0 0
 evalSample Dead = Vector3 0 0 0
 evalSample (Diff col [] _) = col
-evalSample (Diff col shadows gi) = add (evalSample gi) $ foldr (add . shadCol) (Vector3 0 0 0) shadows
+evalSample (Diff col shadows gi) = add (scale 0.2 (evalSample gi)) $ foldr (add . shadCol) (Vector3 0 0 0) shadows
     where shadCol (Shadow scol) = scale (1/pi) $ col `multColour` scol
 evalSample (Emm col) = col
 evalSample (Reflection sample) = evalSample sample
@@ -63,14 +63,16 @@ evalSample (Refraction trans ref mix) = t `add` r
 
 traceGI :: Int -> Intersection -> Render Sample
 traceGI 0 _ = return Dead
-traceGI depth int@(Intersection norm point _ _) = do
-    r1 <- fmap (2*pi*) $ getRandomR (0, 1)
-    r2 <- fmap sqrt $ getRandomR (0, 1)
-    let w = norm
-    let u = normalize $ cross (if abs (x3 w) > 0.1 then Vector3 0 1 0 else Vector3 1 0 0) w
-    let v = cross w u
-    let d = normalize $ ((scale (cos r1 * r2) u) `add` (scale (sin r1 *r2) v) `add` (scale (sqrt $ 1-r2) w))
-    traceSample (depth-1) $ Ray point d
+traceGI depth int@(Intersection norm point _ _) 
+    | depth > 0 = do
+        r1 <- fmap (2*pi*) $ getRandomR (0, 1)
+        r2 <- fmap sqrt $ getRandomR (0, 1)
+        let w = norm
+        let u = normalize $ cross (if abs (x3 w) > 0.1 then Vector3 0 1 0 else Vector3 1 0 0) w
+        let v = cross w u
+        let d = normalize $ ((scale (cos r1 * r2) u) `add` (scale (sin r1 *r2) v) `add` (scale (sqrt $ 1-r2) w))
+        traceSample (depth-1) $ Ray point d
+    | otherwise = return Dead
 
 traceReflection :: Int -> Intersection -> Render Sample
 traceReflection depth (Intersection norm point (Ray _ dir) _) = traceEvent "traceReflection" $ do
