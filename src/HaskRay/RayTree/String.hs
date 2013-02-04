@@ -7,7 +7,7 @@ import Text.Printf
 import Data.Tree
 
 treeString :: Pixel -> String
-treeString (Pixel samples) = drawTree $ Node "Pixel" (map sample2tree samples)
+treeString samples = drawTree $ Node "Pixel" (map sample2tree samples)
 
 colStr :: Colour -> String
 colStr colour = printf "Colour (%.3f, %.3f, %.3f)" (x3 colour) (y3 colour) (z3 colour)

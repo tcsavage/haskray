@@ -23,6 +23,7 @@ module HaskRay.Scene,
 PixBuf(..),
 savePpm,
 saveBMP,
+saveBMP',
 -- * High-level Operations
 render,
 renderUnOpt,
@@ -47,13 +48,27 @@ import HaskRay.Monad
 
 import qualified Control.Monad.Parallel as P
 
+import qualified Data.Array.Repa as R
+import Data.Array.Repa (Array, U, D, Z(..), DIM1, DIM2, DIM3, (:.)(..))
+import Data.Array.Repa.Repr.Vector
+import Control.Monad.Identity
+
 -- | Render a scene with given settings.
-render :: Settings -> Scene -> PixBuf
-render settings@(Settings w h _ rand) (Scene os view) = PixBuf (w, h) pixels
+--render :: Settings -> Scene -> PixBuf
+--render settings@(Settings w h _ rand) (Scene os view) = PixBuf (w, h) pixels
+--    where
+--        obs = mkObStruct os
+--        sampleRays = makeCameraRays settings view -- [[Ray]]
+--        pixels = runRender (P.mapM (\x -> tracePixel x >>= (return . evalPixel)) sampleRays) obs rand
+
+-- | Render a scene with given settings.
+render :: Settings -> Scene -> Array V DIM2 Colour
+render settings@(Settings w h s rand) (Scene os view) = runIdentity $ R.computeP evaled
     where
         obs = mkObStruct os
         sampleRays = makeCameraRays settings view -- [[Ray]]
-        pixels = runRender (P.mapM (\x -> tracePixel x >>= (return . evalPixel)) sampleRays) obs rand
+        traced = runRender (P.mapM tracePixel sampleRays) obs rand
+        evaled = evalPixels $ buildSampleArray (w, h, s) traced
 
 -- | Render a scene with given settings. (Not optimised)
 renderUnOpt :: Settings -> Scene -> PixBuf

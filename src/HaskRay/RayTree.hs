@@ -7,7 +7,10 @@ Shadow(..),
 
 -- ** Tree Operations
 tracePixel,
-evalPixel
+traceSample,
+evalPixel,
+buildSampleArray,
+evalPixels
 ) where
 
 import HaskRay.RayTree.Pixel

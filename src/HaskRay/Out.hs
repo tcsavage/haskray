@@ -44,6 +44,16 @@ saveBMP (PixBuf (w, h) cs) path = R.computeP arr >>= (writeImageToBMP path)
         flop (Z :. i :. j) = Z :. h-i-1 :. j
         conv (Vector3 r g b) = (toEnum $ correctColour r, toEnum $ correctColour g, toEnum $ correctColour b)
 
+saveBMP' :: Array V DIM2 Colour -> FilePath -> IO ()
+saveBMP' carr path = R.computeP arr >>= (writeImageToBMP path)
+    where
+        arr :: Array D DIM2 (Word8, Word8, Word8)
+        arr = R.backpermute shape flop $ R.map conv carr
+        (Z :. h :. w) = R.extent carr
+        shape = R.extent carr
+        flop (Z :. i :. j) = Z :. h-i-1 :. j
+        conv (Vector3 r g b) = (toEnum $ correctColour r, toEnum $ correctColour g, toEnum $ correctColour b)
+
 toRepa' :: PixBuf -> Array U DIM3 Double
 toRepa' (PixBuf (w, h) cs) = runIdentity $ do
     let red = R.map x3 colourArray
