@@ -26,6 +26,8 @@ saveBMP,
 saveBMP',
 -- * High-level Operations
 render,
+trace,
+eval,
 renderUnOpt,
 getPixelForest,
 examineTreeAt,
@@ -62,13 +64,18 @@ import Control.Monad.Identity
 --        pixels = runRender (P.mapM (\x -> tracePixel x >>= (return . evalPixel)) sampleRays) obs rand
 
 -- | Render a scene with given settings.
-render :: Settings -> Scene -> Array V DIM2 Colour
-render settings@(Settings w h s rand) (Scene os view) = runIdentity $ R.computeP evaled
+trace :: Settings -> Scene -> Array V DIM3 Sample
+trace settings@(Settings w h s rand) (Scene os view) = buildSampleArray (w, h, s) traced
     where
         obs = mkObStruct os
         sampleRays = makeCameraRays settings view -- [[Ray]]
         traced = runRender (P.mapM tracePixel sampleRays) obs rand
-        evaled = evalPixels $ buildSampleArray (w, h, s) traced
+
+eval :: Array V DIM3 Sample -> Array V DIM2 Colour
+eval arr = runIdentity $ R.computeP $ evalPixels arr
+
+render :: Settings -> Scene -> Array V DIM2 Colour
+render settings = eval . trace settings
 
 -- | Render a scene with given settings. (Not optimised)
 renderUnOpt :: Settings -> Scene -> PixBuf

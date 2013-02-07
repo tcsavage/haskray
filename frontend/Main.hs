@@ -10,7 +10,7 @@ import Data.Maybe
 import System.IO
 import Control.Monad
 import Text.Printf
-import Debug.Trace
+import Data.Binary
 
 import Settings
 
@@ -134,7 +134,6 @@ readArgs args = error ("Unrecognised arguments: " ++ show args)
 main :: IO ()
 --main = mapM_ testAnim (zip [-10,-9.75..10] [1..])
 main = do
-    traceEventIO "Start main"
     opts <- getArgs
     randomSeed <- newStdGen
     let settings = readArgs opts
@@ -143,17 +142,18 @@ main = do
     tex <- loadTexture "tex-spheremap.bmp"
     let scene = optimiseScene (Scene (objects tex) camera)
     --let scene = if null scenestr then defscene else deserialize scenestr
-    let pbuf = render rsettings scene
+    let traced = trace rsettings scene
+    encodeFile "dump.dat" traced
+    let pbuf = eval traced
+    --let pbuf = render rsettings scene
     case getFilePath settings of
         Just filepath -> do
             putStrLn $ "Rendering (seed: " ++ (show randomSeed) ++ ")..."
 #ifdef GLView
             when (getOpenGLView settings) $ glDisp rsettings scene pbuf
 #endif
-            traceEventIO "Start render/write"
             --savePpm filepath pbuf
             saveBMP' pbuf filepath
-            traceEventIO "Finished"
         otherwise -> error "No output file given"
 
 --testAnim (v,n) = do

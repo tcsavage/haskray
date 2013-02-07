@@ -16,3 +16,4 @@ evalPixels
 import HaskRay.RayTree.Pixel
 import HaskRay.RayTree.Sample
 import HaskRay.RayTree.Light
+import HaskRay.RayTree.IO

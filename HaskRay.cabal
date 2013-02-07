@@ -46,6 +46,7 @@ library
     HaskRay.Parser
     HaskRay.Projection
     HaskRay.RayTree
+    HaskRay.RayTree.IO
     HaskRay.RayTree.Light
     HaskRay.RayTree.Pixel
     HaskRay.RayTree.Sample
@@ -54,7 +55,7 @@ library
     HaskRay.Settings
     HaskRay.Vector
     HaskRay.Vector.Advanced
-  build-depends:       base ==4.5.*, bytestring, split ==0.1.*, parallel ==3.2.*, random, mtl, MonadRandom, containers, time, deepseq, monad-parallel, repa, repa-io
+  build-depends:       base ==4.5.*, bytestring, split ==0.1.*, parallel ==3.2.*, random, mtl, MonadRandom, containers, time, deepseq, monad-parallel, repa, repa-io, binary
   hs-source-dirs:      src
   ghc-options:         -threaded -O2 -fwarn-incomplete-patterns
 
@@ -62,16 +63,29 @@ executable HaskRay
   main-is:             Main.hs
   if flag(buildfrontend)
     hs-source-dirs:      frontend
-    ghc-options:         -threaded -eventlog -rtsopts -O2 -fwarn-incomplete-patterns
+    ghc-options:         -threaded -eventlog -rtsopts -O2 -fwarn-incomplete-patterns -with-rtsopts="-N"
     if flag(glview)
       other-modules:       GLDisplay, GLDisplay.Display, GLDisplay.Input, GLDisplay.Renderable GLDisplay.Util, GLDisplay.UI, Settings
-      build-depends:       base ==4.5.*, HaskRay, awesomium, time, random, GLUT >= 2.3, OpenGL >=2.6, async, Tensor
+      build-depends:       base ==4.5.*, HaskRay, awesomium, time, random, GLUT >= 2.3, OpenGL >=2.6, async, Tensor, binary
       cpp-options:         -DGLView
     else
       other-modules:       Settings
-      build-depends:       base ==4.5.*, HaskRay, random
+      build-depends:       base ==4.5.*, HaskRay, random, binary
   else
     buildable:           False
+
+executable hr-trace
+  main-is:             Trace.hs
+  other-modules:       Settings
+  hs-source-dirs:      frontend
+  ghc-options:         -threaded -eventlog -rtsopts -O2 -fwarn-incomplete-patterns -with-rtsopts=-N
+  build-depends:       base ==4.5.*, HaskRay, random, binary
+
+executable hr-eval
+  main-is:             Eval.hs
+  hs-source-dirs:      frontend
+  ghc-options:         -threaded -eventlog -rtsopts -O2 -fwarn-incomplete-patterns -with-rtsopts=-N
+  build-depends:       base ==4.5.*, HaskRay, binary
 
 test-suite properties
   type: exitcode-stdio-1.0
