@@ -16,10 +16,10 @@ newtype AsShape s = AsShape s
 
 instance (R.Shape s) => Binary (AsShape s) where
     put (AsShape s) = put $ R.listOfShape s
-    get = get >>= (return . AsShape . R.shapeOfList)
+    get = liftM (AsShape . R.shapeOfList) get
 
 instance (Binary e, R.Shape sh, R.Source r e, R.Target r e) => Binary (R.Array r sh e) where
-    put arr = (put . AsShape $ R.extent arr) >> (put $ R.toList arr)
+    put arr = (put . AsShape $ R.extent arr) >> put (R.toList arr)
     get = do
         AsShape shape <- get
         elements <- get
@@ -87,6 +87,7 @@ instance Binary Sample where
                 mix <- get
                 return $ Refraction refraction reflection mix
             5 -> return Dead
+            _ -> error "HaskRay.RayTree.IO Binary instance for Sample (get): Unknown constructor code."
 
 instance Binary Shadow where
     put (Shadow col) = put col

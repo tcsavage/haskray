@@ -4,7 +4,6 @@ serialize,
 deserialize
 ) where
 
-import HaskRay.Vector
 import HaskRay.Material
 import HaskRay.Geometry
 import HaskRay.Scene
@@ -24,7 +23,7 @@ deserializeObject :: ObjectRep -> Object
 deserializeObject (ObjectRep (ShapeRep "Sphere" rep) m) = Object (read rep :: Sphere) m
 deserializeObject (ObjectRep (ShapeRep "Plane" rep) m) = Object (read rep :: Plane) m
 deserializeObject (ObjectRep (ShapeRep "Mesh" rep) m) = Object (read rep :: Mesh) m
-deserializeObject _ = error "Could not recognise shape."
+deserializeObject _ = error "HaskRay.Parser.deserializeObject: Unknown shape."
 
 serialzeScene :: Scene -> SceneRep
 serialzeScene (Scene objs view) = SceneRep (map serializeObject objs) view

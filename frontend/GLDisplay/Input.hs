@@ -12,11 +12,12 @@ import Graphics.UI.Awesomium
 import Control.Concurrent.Async
 import Data.IORef
 import Foreign.C.Types
+import Foreign.ForeignPtr.Safe
 import Foreign.Ptr
 
 import Graphics.UI.GLUT hiding (Vector3,Vertex,Vertex3(..),Triangle)
 
-keyboardMouse :: WebViewHandle -> IORef ViewMode -> IORef CameraMode -> Settings -> Scene -> Async (Ptr CChar) -> Key -> KeyState -> Modifiers -> Position -> IO ()
+keyboardMouse :: WebViewHandle -> IORef ViewMode -> IORef CameraMode -> Settings -> Scene -> Async (ForeignPtr CChar) -> Key -> KeyState -> Modifiers -> Position -> IO ()
 keyboardMouse _ _ _ settings scene apixels (MouseButton LeftButton) Down (Modifiers Down Up Up) (Position x y) = putStrLn $ examineTreeAt settings scene (fromIntegral x, fromIntegral y)
 keyboardMouse _ viewModeIOR _ _ _ _ (Char ' ') Down _ _ = modifyIORef viewModeIOR (\x -> if x == RenderDisplay then GLView else RenderDisplay) >> readIORef viewModeIOR >>= print
 keyboardMouse _ _ cameraModeIOR _ _ _ (SpecialKey KeyLeft) Down (Modifiers Up Up Down) _ = do

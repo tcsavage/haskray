@@ -3,7 +3,7 @@ module HaskRay
 -- * Vectors
 module HaskRay.Vector,
 -- * Material
-Colour(..),
+Colour,
 Material(..),
 Texture,
 loadTexture,
@@ -17,20 +17,15 @@ module HaskRay.RayTree,
 View(..),
 -- * Settings
 module HaskRay.Settings,
--- * Scene
-module HaskRay.Scene,
 -- * Image Ouput
-PixBuf(..),
-savePpm,
 saveBMP,
-saveBMP',
+makeForeignPtr,
 -- * High-level Operations
 render,
-trace,
-eval,
-renderUnOpt,
 getPixelForest,
 examineTreeAt,
+-- * Scene
+module HaskRay.Scene,
 -- * Parser
 module HaskRay.Parser
 ) where
@@ -51,11 +46,12 @@ import HaskRay.Monad
 import qualified Control.Monad.Parallel as P
 
 import qualified Data.Array.Repa as R
-import Data.Array.Repa (Array, U, D, Z(..), DIM1, DIM2, DIM3, (:.)(..))
+import Data.Array.Repa (Array, DIM2)
 import Data.Array.Repa.Repr.Vector
+import Control.Monad
 import Control.Monad.Identity
 
--- | Render a scene with given settings.
+---- | Render a scene with given settings.
 --render :: Settings -> Scene -> PixBuf
 --render settings@(Settings w h _ rand) (Scene os view) = PixBuf (w, h) pixels
 --    where
@@ -64,26 +60,21 @@ import Control.Monad.Identity
 --        pixels = runRender (P.mapM (\x -> tracePixel x >>= (return . evalPixel)) sampleRays) obs rand
 
 -- | Render a scene with given settings.
-trace :: Settings -> Scene -> Array V DIM3 Sample
-trace settings@(Settings w h s rand) (Scene os view) = buildSampleArray (w, h, s) traced
+render :: Settings -> Scene -> Array V DIM2 Colour
+render settings@(Settings w h s rand) (Scene os view) = runIdentity $ R.computeP evaled
     where
         obs = mkObStruct os
         sampleRays = makeCameraRays settings view -- [[Ray]]
         traced = runRender (P.mapM tracePixel sampleRays) obs rand
+        evaled = evalPixels $ buildSampleArray (w, h, s) traced
 
-eval :: Array V DIM3 Sample -> Array V DIM2 Colour
-eval arr = runIdentity $ R.computeP $ evalPixels arr
-
-render :: Settings -> Scene -> Array V DIM2 Colour
-render settings = eval . trace settings
-
--- | Render a scene with given settings. (Not optimised)
-renderUnOpt :: Settings -> Scene -> PixBuf
-renderUnOpt settings@(Settings w h _ rand) (Scene os view) = PixBuf (w, h) pixels
-    where
-        obs = (os, Leaf vzero 1 [], os)
-        sampleRays = makeCameraRays settings view -- [[Ray]]
-        pixels = runRender (mapM (\x -> tracePixel x >>= (return . evalPixel)) sampleRays) obs rand
+---- | Render a scene with given settings. (Not optimised)
+--renderUnOpt :: Settings -> Scene -> PixBuf
+--renderUnOpt settings@(Settings w h _ rand) (Scene os view) = PixBuf (w, h) pixels
+--    where
+--        obs = (os, Leaf vzero 1 [], os)
+--        sampleRays = makeCameraRays settings view -- [[Ray]]
+--        pixels = runRender (mapM (tracePixel >=> (return . evalPixel)) sampleRays) obs rand
 
 getPixelForest :: Settings -> Scene -> [Pixel]
 getPixelForest settings@(Settings _ _ _ rand) (Scene os view) = forest

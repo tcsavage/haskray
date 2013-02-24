@@ -19,7 +19,7 @@ import Control.Concurrent.Async
 import GLDisplay
 #endif
 
-texTri = translateTriangle (Vector3 0 0 2) $ Triangle (Vertex (Vector3 (-5.000000) (-5.000000) (0.000000)) (Vector3 (0.000000) (0.000000) (-1.000000)) (Vector2 0 0)) (Vertex (Vector3 (5.000000) (5.000000) (0.000000)) (Vector3 (0.000000) (0.000000) (-1.000000)) (Vector2 1 1)) (Vertex (Vector3 (-5.000000) (5.000000) (0.000000)) (Vector3 (0.000000) (0.000000) (-1.000000)) (Vector2 1 0))
+--texTri = translateTriangle (Vector3 0 0 2) $ Triangle (Vertex (Vector3 (-5.000000) (-5.000000) (0.000000)) (Vector3 (0.000000) (0.000000) (-1.000000)) (Vector2 0 0)) (Vertex (Vector3 (5.000000) (5.000000) (0.000000)) (Vector3 (0.000000) (0.000000) (-1.000000)) (Vector2 1 1)) (Vertex (Vector3 (-5.000000) (5.000000) (0.000000)) (Vector3 (0.000000) (0.000000) (-1.000000)) (Vector2 1 0))
 
 mesh4 = (Mesh (Vector3 0 (-5) (-5)) [(Triangle (Vertex (Vector3 (-1.000000) (-1.000000) (1.000000)) (Vector3 (-0.579516) (-0.703146) (0.411939)) (Vector2 0 0)) (Vertex (Vector3 (-2.000000) (2.000000) (1.000000)) (Vector3 (-0.616413) (0.616413) (0.489914)) (Vector2 0 0)) (Vertex (Vector3 (-2.000000) (2.000000) (-1.000000)) (Vector3 (-0.590136) (0.590136) (-0.550829)) (Vector2 0 0))), (Triangle (Vertex (Vector3 (-2.000000) (2.000000) (1.000000)) (Vector3 (-0.616413) (0.616413) (0.489914)) (Vector2 0 0)) (Vertex (Vector3 (1.000000) (1.000000) (1.000000)) (Vector3 (0.703146) (0.579516) (0.411939)) (Vector2 0 0)) (Vertex (Vector3 (1.000000) (1.000000) (-1.000000)) (Vector3 (0.651295) (0.469405) (-0.596179)) (Vector2 0 0))), (Triangle (Vertex (Vector3 (1.000000) (1.000000) (1.000000)) (Vector3 (0.703146) (0.579516) (0.411939)) (Vector2 0 0)) (Vertex (Vector3 (1.000000) (-1.000000) (2.000000)) (Vector3 (0.477096) (-0.477096) (0.738060)) (Vector2 0 0)) (Vertex (Vector3 (1.000000) (-1.000000) (-1.000000)) (Vector3 (0.577349) (-0.577349) (-0.577349)) (Vector2 0 0))), (Triangle (Vertex (Vector3 (1.000000) (-1.000000) (2.000000)) (Vector3 (0.477096) (-0.477096) (0.738060)) (Vector2 0 0)) (Vertex (Vector3 (-1.000000) (-1.000000) (1.000000)) (Vector3 (-0.579516) (-0.703146) (0.411939)) (Vector2 0 0)) (Vertex (Vector3 (-1.000000) (-1.000000) (-1.000000)) (Vector3 (-0.469405) (-0.651295) (-0.596179)) (Vector2 0 0))), (Triangle (Vertex (Vector3 (-1.000000) (-1.000000) (-1.000000)) (Vector3 (-0.469405) (-0.651295) (-0.596179)) (Vector2 0 0)) (Vertex (Vector3 (-2.000000) (2.000000) (-1.000000)) (Vector3 (-0.590136) (0.590136) (-0.550829)) (Vector2 0 0)) (Vertex (Vector3 (1.000000) (1.000000) (-1.000000)) (Vector3 (0.651295) (0.469405) (-0.596179)) (Vector2 0 0))), (Triangle (Vertex (Vector3 (1.000000) (-1.000000) (2.000000)) (Vector3 (0.477096) (-0.477096) (0.738060)) (Vector2 0 0)) (Vertex (Vector3 (1.000000) (1.000000) (1.000000)) (Vector3 (0.703146) (0.579516) (0.411939)) (Vector2 0 0)) (Vertex (Vector3 (-2.000000) (2.000000) (1.000000)) (Vector3 (-0.616413) (0.616413) (0.489914)) (Vector2 0 0))), (Triangle (Vertex (Vector3 (-1.000000) (-1.000000) (-1.000000)) (Vector3 (-0.469405) (-0.651295) (-0.596179)) (Vector2 0 0)) (Vertex (Vector3 (-1.000000) (-1.000000) (1.000000)) (Vector3 (-0.579516) (-0.703146) (0.411939)) (Vector2 0 0)) (Vertex (Vector3 (-2.000000) (2.000000) (-1.000000)) (Vector3 (-0.590136) (0.590136) (-0.550829)) (Vector2 0 0))), (Triangle (Vertex (Vector3 (-2.000000) (2.000000) (-1.000000)) (Vector3 (-0.590136) (0.590136) (-0.550829)) (Vector2 0 0)) (Vertex (Vector3 (-2.000000) (2.000000) (1.000000)) (Vector3 (-0.616413) (0.616413) (0.489914)) (Vector2 0 0)) (Vertex (Vector3 (1.000000) (1.000000) (-1.000000)) (Vector3 (0.651295) (0.469405) (-0.596179)) (Vector2 0 0))), (Triangle (Vertex (Vector3 (1.000000) (1.000000) (-1.000000)) (Vector3 (0.651295) (0.469405) (-0.596179)) (Vector2 0 0)) (Vertex (Vector3 (1.000000) (1.000000) (1.000000)) (Vector3 (0.703146) (0.579516) (0.411939)) (Vector2 0 0)) (Vertex (Vector3 (1.000000) (-1.000000) (-1.000000)) (Vector3 (0.577349) (-0.577349) (-0.577349)) (Vector2 0 0))), (Triangle (Vertex (Vector3 (1.000000) (-1.000000) (-1.000000)) (Vector3 (0.577349) (-0.577349) (-0.577349)) (Vector2 0 0)) (Vertex (Vector3 (1.000000) (-1.000000) (2.000000)) (Vector3 (0.477096) (-0.477096) (0.738060)) (Vector2 0 0)) (Vertex (Vector3 (-1.000000) (-1.000000) (-1.000000)) (Vector3 (-0.469405) (-0.651295) (-0.596179)) (Vector2 0 0))), (Triangle (Vertex (Vector3 (1.000000) (-1.000000) (-1.000000)) (Vector3 (0.577349) (-0.577349) (-0.577349)) (Vector2 0 0)) (Vertex (Vector3 (-1.000000) (-1.000000) (-1.000000)) (Vector3 (-0.469405) (-0.651295) (-0.596179)) (Vector2 0 0)) (Vertex (Vector3 (1.000000) (1.000000) (-1.000000)) (Vector3 (0.651295) (0.469405) (-0.596179)) (Vector2 0 0))), (Triangle (Vertex (Vector3 (-1.000000) (-1.000000) (1.000000)) (Vector3 (-0.579516) (-0.703146) (0.411939)) (Vector2 0 0)) (Vertex (Vector3 (1.000000) (-1.000000) (2.000000)) (Vector3 (0.477096) (-0.477096) (0.738060)) (Vector2 0 0)) (Vertex (Vector3 (-2.000000) (2.000000) (1.000000)) (Vector3 (-0.616413) (0.616413) (0.489914)) (Vector2 0 0)))])
 
@@ -91,14 +91,14 @@ objects tex = [Object (Plane (normalize (Vector3 0 (-1) 0)) 5) (Diffuse (Vector3
         ,Object (Plane (normalize (Vector3 (-1) 0 0)) (14)) (Diffuse (Vector3 0 0.8 0))
         ,Object (Plane (normalize (Vector3 0 0 (-1))) (18)) (Diffuse (Vector3 0.8 0.8 0.8))
         --,Object (Sphere (Vector3 1 1 1) 3) (Transmissive 1.05 0.9)
-        ,Object (Sphere (Vector3 5 1 10) 4) (Reflective)
+        --,Object (Sphere (Vector3 5 1 10) 4) (Reflective)
         --,Object (Sphere (Vector3 (-8) 0 8) 5) (Diffuse (Vector3 0 1 0))
         ,Object (Sphere (Vector3 (-8) 0 8) 5) (Texture tex)
         ,Object (Sphere (Vector3 8 3 4) 2) (Diffuse (Vector3 1 1 0))
         --,Object (Sphere (Vector3 2 (-15) 2) 1) (Emissive (Vector3 1 0 0) 400)
         ,Object (Sphere (Vector3 (2) (-15) (-8)) 1) (Emissive (Vector3 1 0 0) 400)
         --,Object mesh3 (Diffuse (Vector3 1 0.5 0))
-        ,Object texTri (Texture tex)
+        --,Object texTri (Texture tex)
         ]
 
 camera :: View
@@ -142,10 +142,7 @@ main = do
     tex <- loadTexture "tex-spheremap.bmp"
     let scene = optimiseScene (Scene (objects tex) camera)
     --let scene = if null scenestr then defscene else deserialize scenestr
-    let traced = trace rsettings scene
-    encodeFile "dump.dat" traced
-    let pbuf = eval traced
-    --let pbuf = render rsettings scene
+    let pbuf = render rsettings scene
     case getFilePath settings of
         Just filepath -> do
             putStrLn $ "Rendering (seed: " ++ (show randomSeed) ++ ")..."
@@ -153,7 +150,7 @@ main = do
             when (getOpenGLView settings) $ glDisp rsettings scene pbuf
 #endif
             --savePpm filepath pbuf
-            saveBMP' pbuf filepath
+            saveBMP pbuf filepath
         otherwise -> error "No output file given"
 
 --testAnim (v,n) = do

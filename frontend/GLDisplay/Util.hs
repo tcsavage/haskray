@@ -24,25 +24,3 @@ toGLColor4 (Vector3 r g b) = Color4 (CFloat $ dtof r) (CFloat $ dtof g) (CFloat 
     where
         dtof :: Double -> Float
         dtof n = (uncurry encodeFloat) (decodeFloat n)
-
-colourToBytes :: Colour -> [CChar]
-colourToBytes (Vector3 r g b) = [toByte r, toByte g, toByte b, toByte 1]
-    where
-        toByte = CChar . toInt
-        toInt n = fromIntegral . floor $ (clamp n ** (1/2.2)) * 255 + 0.5
-        clamp n
-            | n < 0 = 0
-            | n > 1 = 1
-            | otherwise = n
-
-coloursToBytes :: [Colour] -> [CChar]
-coloursToBytes cs = concatMap colourToBytes cs
-
-makeColourArray :: [Colour] -> IO (Ptr CChar)
---makeColourArray = newArray . coloursToBytes
-makeColourArray cs = do
-    start <- getCurrentTime
-    arr <- newArray $ coloursToBytes cs
-    end <- getCurrentTime
-    putStrLn $ printf "Render took %s" (show $ diffUTCTime end start)
-    return arr

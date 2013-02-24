@@ -1,7 +1,6 @@
 {-|
 This module defines a type class and instances for types that can be rendered in an OpenGL context.
 These types include ray tracer 'Object's as well as 'BoundingBox'es and 'Octree's - structures' not normally seen.
-These types are included because the OpenGL view is useful for debugging and visualisation.
 -}
 module GLDisplay.Renderable
 (

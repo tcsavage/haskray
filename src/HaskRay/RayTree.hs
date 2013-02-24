@@ -1,7 +1,7 @@
 module HaskRay.RayTree
 (
 -- ** Tree Nodes
-Pixel(..),
+Pixel,
 Sample(..),
 Shadow(..),
 
@@ -16,4 +16,4 @@ evalPixels
 import HaskRay.RayTree.Pixel
 import HaskRay.RayTree.Sample
 import HaskRay.RayTree.Light
-import HaskRay.RayTree.IO
+import HaskRay.RayTree.IO()
