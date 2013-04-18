@@ -25,7 +25,7 @@ type Pixel = [Sample]
 
 -- | Builds a ray tree for a pixel.
 tracePixel :: [Ray] -> Render Pixel
-tracePixel = P.mapM (traceSample 5)
+tracePixel = P.mapM (traceSample 1)
 
 -- | Evaluates the ray tee under a pixel to determine a final 'Colour' value.
 evalPixel :: Pixel -> Colour

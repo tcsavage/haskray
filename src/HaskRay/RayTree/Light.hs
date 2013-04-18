@@ -14,14 +14,14 @@ import Data.Maybe
 import Data.Typeable
 
 -- | Shadow ray retult.
-data Shadow = Shadow Colour deriving (Show, Eq)
+data Shadow = Shadow !Colour deriving (Show, Eq)
 
 -- | Calculate per-light shading.
-traceLight :: Intersection -> Object -> Render Shadow
-traceLight (Intersection norm point _ (Diffuse colour)) light = do
+traceLight :: Intersection -> Colour -> Object -> Render Shadow
+traceLight (Intersection norm point _ _) colour light = do
     fact <- doLighting point norm light
     return $ Shadow $ scale fact colour
-traceLight _ _ = error "HaskRay.RayTree.Light.traceLight: Trying to light non-diffuse material."
+traceLight _ _ _ = error "HaskRay.RayTree.Light.traceLight: Trying to light non-diffuse material."
 
 -- TODO: Shadow through reflection/refraction
 doLighting :: Vec3 -> Vec3 -> Object -> Render Scalar

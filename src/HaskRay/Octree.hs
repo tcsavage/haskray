@@ -23,7 +23,8 @@ import Data.List
 Octree type.
 Nodes are referenced from top-down perspective, north-west high/low => nwh/nwl etc.
 -}
-data Octree = Leaf Vec3 Scalar [Object] | Branch { pos :: Vec3, size :: Scalar, nwh, nwl, neh, nel, swh, swl, seh, sel :: Octree } deriving (Show)
+data Octree = Leaf !Vec3 !Scalar ![Object]
+            | Branch { pos :: !Vec3, size :: !Scalar, nwh, nwl, neh, nel, swh, swl, seh, sel :: !Octree } deriving (Show)
 
 -- | List of all infinite objects, octree and all objects together.
 type ObjectStructure = ([Object], Octree, [Object])

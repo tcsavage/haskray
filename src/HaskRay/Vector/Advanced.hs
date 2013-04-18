@@ -1,5 +1,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 -- Using -XFlexibleInstances we can define a Monoid instance for all instanced of Vector.
+{-# OPTIONS_GHC -funbox-strict-fields #-}
+-- Automatically add an UNPACK pragma for strict records.
 
 module HaskRay.Vector.Advanced
 (
@@ -7,14 +9,9 @@ module HaskRay.Vector.Advanced
 Vector(..),
 -- ** Vector3 Type
 Vector3(..),
-x3,
-y3,
-z3,
 cross,
 -- ** Vector2 Type
 Vector2(..),
-x2,
-y2,
 -- ** Type Aliases
 Scalar,
 Vec3,
@@ -56,19 +53,7 @@ class Vector v where
     normalize :: (Floating a, Eq a) => v a -> v a
 
 -- | Three-dimensional vector type.
-data Vector3 a = Vector3 !a !a !a deriving (Show, Read, Eq)
-
--- | Get x component.
-x3 :: Vector3 a -> a
-x3 (Vector3 x _ _) = x
-
--- | Get y component.
-y3 :: Vector3 a -> a
-y3 (Vector3 _ y _) = y
-
--- | GEt z component.
-z3 :: Vector3 a -> a
-z3 (Vector3 _ _ z) = z
+data Vector3 a = Vector3 { x3 :: !a, y3 :: !a, z3 :: !a } deriving (Show, Read, Eq)
 
 {-
 Here we define an instance of the Functor type class for Vector3.
@@ -126,15 +111,7 @@ cross :: (Floating a, Eq a) => Vector3 a -> Vector3 a -> Vector3 a
 cross (Vector3 a1 a2 a3) (Vector3 b1 b2 b3) = Vector3 (a2*b3 - a3*b2) (a3*b1 - a1*b3) (a1*b2 - a2*b1)
 
 -- | Two-demensional vector type.
-data Vector2 a = Vector2 !a !a deriving (Show, Read, Eq)
-
--- | Get x component.
-x2 :: Vector2 a -> a
-x2 (Vector2 x _) = x
-
--- | Get y component.
-y2 :: Vector2 a -> a
-y2 (Vector2 _ y) = y
+data Vector2 a = Vector2 { x2 :: !a, y2 :: !a } deriving (Show, Read, Eq)
 
 instance Functor Vector2 where
     fmap f (Vector2 x y) = Vector2 (f x) (f y)

@@ -36,7 +36,8 @@ instance Renderable Object where
 				liftCast f s = (liftM f) (cast s)
 
 setColour :: Material -> IO ()
-setColour (Diffuse colour) = currentColor $= toGLColor4 colour
+setColour (Shaded (HaskRay.Flat colour)) = currentColor $= toGLColor4 colour
+setColour (Shadeless (HaskRay.Flat colour)) = currentColor $= toGLColor4 colour
 setColour _ = currentColor $= toGLColor4 (Vector3 1 1 1)
 
 renderSphere :: Sphere -> IO ()

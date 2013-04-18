@@ -25,14 +25,14 @@ import Control.Monad
 import Data.Typeable
 
 -- | A vertex has a position, normal and UV coordinates.
-data Vertex = Vertex Vec3 Vec3 Vec2 deriving (Show, Read, Eq)
+data Vertex = Vertex !Vec3 !Vec3 !Vec2 deriving (Show, Read, Eq)
 
 -- | Moves a vertex by a vector
 translateVertex :: Vec3 -> Vertex -> Vertex
 translateVertex vec (Vertex p n uv) = Vertex (p `add` vec) n uv
 
 -- | Triangles are composed of three vertices.
-data Triangle = Triangle Vertex Vertex Vertex deriving (Show, Read, Eq, Typeable)
+data Triangle = Triangle !Vertex !Vertex !Vertex deriving (Show, Read, Eq, Typeable)
 
 -- | Moves a triangle by a vector.
 translateTriangle :: Vec3 -> Triangle -> Triangle

@@ -19,7 +19,7 @@ import GHC.Exts (sortWith)
 {-|
 Defines a mathematical sphere.
 -}
-data Sphere = Sphere Vec3 Scalar deriving (Show, Read, Eq, Typeable)
+data Sphere = Sphere !Vec3 !Scalar deriving (Show, Read, Eq, Typeable)
 
 instance Shape Sphere where
     intersect ray@(Ray origin dir) (Sphere center rad, material) = listToMaybe is

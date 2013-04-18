@@ -17,7 +17,7 @@ Defines an infinite plane.
 
 > Plane (Vector3 a b c) d => ax + by + cz + d = 0
 -}
-data Plane = Plane Vec3 Scalar deriving (Show, Read, Eq, Typeable)
+data Plane = Plane !Vec3 !Scalar deriving (Show, Read, Eq, Typeable)
 
 instance Shape Plane where
     intersect ray@(Ray origin dir) (Plane normal d, material)

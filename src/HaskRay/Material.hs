@@ -5,6 +5,7 @@ multColour,
 floatingToByte,
 gammaCorrect,
 Material(..),
+Diffuse(..),
 Texture,
 loadTexture,
 indexTextureUV
@@ -41,7 +42,14 @@ gammaCorrect :: Scalar -> Scalar
 gammaCorrect n = n ** (1/2.2)
 
 -- | Defines surface properties.
-data Material = Diffuse Colour | Emissive Colour Scalar | Reflective | Transmissive Double Double | Texture Texture deriving (Show, Read, Eq)
+data Material = Shaded !Diffuse
+              | Shadeless !Diffuse
+              | Emissive !Colour !Scalar
+              | Reflective
+              | Transmissive !Double !Double
+              deriving (Show, Read, Eq)
+
+data Diffuse = Flat !Colour | Textured !Texture deriving (Show, Read, Eq)
 
 -- | Texture type alias.
 type Texture = Array V DIM2 Colour

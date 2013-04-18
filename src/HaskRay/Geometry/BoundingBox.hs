@@ -14,7 +14,7 @@ import HaskRay.Geometry.Ray
 import Control.Applicative
 
 -- | Bounding box type.
-data BoundingBox = BoundingBox Vec3 Vec3 deriving (Show, Eq)
+data BoundingBox = BoundingBox !Vec3 !Vec3 deriving (Show, Eq)
 
 -- | Get the maximum point from a list of vectors. Useful for building bounding boxes.
 maxPoint :: [Vec3] -> Vec3

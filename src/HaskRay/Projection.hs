@@ -10,7 +10,7 @@ import HaskRay.Settings
 import System.Random
 
 -- | Camera type.
-data View = View { position :: Vec3, lookAt :: Vec3, upVec :: Vec3, fov :: Scalar } deriving (Show, Read, Eq)
+data View = View { position :: !Vec3, lookAt :: !Vec3, upVec :: !Vec3, fov :: !Scalar } deriving (Show, Read, Eq)
 
 -- | Generate rays from camera and pixel grid.
 perspectiveProjection :: View -> Vec3 -> Ray

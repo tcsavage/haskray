@@ -34,7 +34,7 @@ import Data.Typeable
 import GHC.Exts (sortWith)
 
 -- | Heterogeneous container for shapes and an associated material function.
-data Object = forall a. Shape a => Object a Material
+data Object = forall a. Shape a => Object !a !Material
 
 -- 'Eq' instance for 'Object'. Solution from <http://stackoverflow.com/q/13015949/154598>.
 instance Eq Object where
