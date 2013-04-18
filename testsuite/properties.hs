@@ -30,6 +30,28 @@ instance ProxTest Double where
 instance ProxTest a => ProxTest (Vector3 a) where
 	v1 ~= v2 = foldr (&&) True $ (~=) <$> v1 <*> v2
 
+prop_vector_functorlaws_1 :: Double -> Double -> Double -> Bool
+prop_vector_functorlaws_1 x1 y1 z1 = fmap id v1 == v1
+	where
+		v1 = Vector3 x1 y1 z1
+
+prop_vector_functorlaws_2 :: Double -> Double -> Double -> Bool
+prop_vector_functorlaws_2 x1 y1 z1 = fmap (f . g) v1 == (fmap f . fmap g) v1
+	where
+		v1 = Vector3 x1 y1 z1
+		f = (*2)
+		g = (+1)
+
+prop_vector_applicativelaws_1 :: Double -> Double -> Double -> Bool
+prop_vector_applicativelaws_1 x1 y1 z1 = (pure id <*> v1) == v1
+	where
+		v1 = Vector3 x1 y1 z1
+
+prop_vector_applicativelaws_2 :: Double -> Bool
+prop_vector_applicativelaws_2 x1 = (pure f <*> pure x1) == (pure (f x1) :: Vec3)
+	where
+		f = (*2)
+
 prop_proxtest :: Double -> Double -> Bool
 prop_proxtest d1 d2 = (d1 ~= d2) == (d1 == d2)
 
