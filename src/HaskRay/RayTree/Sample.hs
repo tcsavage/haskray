@@ -20,37 +20,40 @@ import HaskRay.Vector
 import Data.Foldable
 
 -- | When a sample is traced, the object it intersects with determines its value.
-data Sample = Background                       -- ^ The ray hit nothing. Evaluates to a simple background colour.
+data Sample = Background                          -- ^ The ray hit nothing. Evaluates to a simple background colour.
             | Diff !Colour ![Shadow] !Colour      -- ^ Diffuse surface. Contains a base colour, a shadow ray for each light, and a global illumination sample.
-            | ShadelessDiff !Colour              -- ^ Simple diffuse surface with no shading or illumination.
-            | Emm !Colour                       -- ^ Emissive material.
-            | Reflection !Sample                -- ^ Reflective surface. Contains reflected sample.
+            | ShadelessDiff !Colour               -- ^ Simple diffuse surface with no shading or illumination.
+            | Emm !Colour                         -- ^ Emissive material.
+            | Reflection !Sample                  -- ^ Reflective surface. Contains reflected sample.
             | Refraction !Sample !Sample !Double  -- ^ Transmissive surface. Contains refracted sample, a reflected sample and a mix factor.
-            | Dead                             -- ^ Dead end sample. Represents a reflection, refraction or global illumation sample killed by russian roulette.
+            | Dead                                -- ^ Dead end sample. Represents a reflection, refraction or global illumation sample killed by russian roulette.
             deriving (Show, Eq)
 
 -- | Trace sample from ray.
 traceSample :: Int -> Ray -> Render Sample
 traceSample depth ray = do
-    obs <- ask
+    (obs, _) <- ask
     procIntersection $ closestIntersectObStruct ray obs
     where
         -- Handle intersect results.
-        procIntersection Nothing = return Background
+        procIntersection Nothing = return Background  -- Ray hit nothing. Assume a background value.
         procIntersection (Just (_, i@(Intersection _ _ _ material), ob)) = procMaterial material i ob
         -- Handle different material types.
         procMaterial (Shaded diff) i ob = do
-            obs <- ask
+            (obs, gimode) <- ask
             let lights = filter isEmissive (getObjects obs ray)
             let col = procDiffuse diff i ob
             light <- mapM (traceLight i col) lights
-            --gi <- traceGI depth i col
-            return $ Diff col light vzero -- (evalSample gi)
+            gi <- case gimode of -- GIMode control if and how we do GI.
+                Nothing -> return Dead
+                (Just _) -> traceGI depth i col
+            return $ Diff col light (evalSample gi)
         procMaterial (Shadeless diff) i ob = return $ ShadelessDiff $ procDiffuse diff i ob
         procMaterial (Emissive col _) i _ = return $ Emm col
         procMaterial (Reflective) i _ = traceReflection depth i
         procMaterial (Transmissive _ _) i ob = traceTransmission depth i ob
 
+-- | Get a diffuse colour value.
 procDiffuse :: Diffuse -> Intersection -> Object -> Colour
 procDiffuse (Flat col) _ _ = col
 procDiffuse (Textured tex) (Intersection norm pos ray _) ob = indexTextureUV tex $ mapTextureOb ob pos

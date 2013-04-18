@@ -62,11 +62,11 @@ import Control.Monad.Identity
 
 -- | Render a scene with given settings.
 render :: Settings -> Scene -> Array V DIM2 Colour
-render settings@(Settings w h s rand) (Scene os view) = runIdentity $ R.computeP evaled
+render settings@(Settings w h s rand gim) (Scene os view) = runIdentity $ R.computeP evaled
     where
         obs = mkObStruct os
         sampleRays = makeCameraRays settings view -- [[Ray]]
-        traced = runRender (P.mapM tracePixel sampleRays) obs rand
+        traced = runRender (P.mapM tracePixel sampleRays) (obs, gim) rand
         evaled = evalPixels $ buildSampleArray (w, h, s) traced
 
 ---- | Render a scene with given settings. (Not optimised)
@@ -78,16 +78,16 @@ render settings@(Settings w h s rand) (Scene os view) = runIdentity $ R.computeP
 --        pixels = runRender (mapM (tracePixel >=> (return . evalPixel)) sampleRays) obs rand
 
 getPixelForest :: Settings -> Scene -> [Pixel]
-getPixelForest settings@(Settings _ _ _ rand) (Scene os view) = forest
+getPixelForest settings@(Settings _ _ _ rand gim) (Scene os view) = forest
     where
         obs = mkObStruct os
         sampleRays = makeCameraRays settings view
-        forest = runRender (mapM tracePixel sampleRays) obs rand
+        forest = runRender (mapM tracePixel sampleRays) (obs, gim) rand
 
 -- | Return a textual representation of the ray tree for a given pixel (instead of rendering).
 examineTreeAt :: Settings -> Scene -> (Int, Int) -> String
-examineTreeAt settings@(Settings w _ _ rand) (Scene os view) (x, y) = treeString tree
+examineTreeAt settings@(Settings w _ _ rand gim) (Scene os view) (x, y) = treeString tree
     where
         obs = mkObStruct os
         sampleRays = makeCameraRays settings view
-        tree = runRender (tracePixel $ sampleRays !! (y*w + x)) obs rand
+        tree = runRender (tracePixel $ sampleRays !! (y*w + x)) (obs, gim) rand

@@ -26,7 +26,7 @@ traceLight _ _ _ = error "HaskRay.RayTree.Light.traceLight: Trying to light non-
 -- TODO: Shadow through reflection/refraction
 doLighting :: Vec3 -> Vec3 -> Object -> Render Scalar
 doLighting x norm light@(Object ls (Emissive colour empow)) = do
-    obs <- ask
+    (obs, _) <- ask
     eps1 <- getRandomR (0, 1)
     eps2 <- getRandomR (0, 1)
     let sphere = fromMaybe (error "HaskRay.RayTree.Light.doLighting: Emissive surface not sphere.") $ cast ls

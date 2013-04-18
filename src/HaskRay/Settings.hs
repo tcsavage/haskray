@@ -9,4 +9,4 @@ Settings(..)
 import System.Random
 
 -- | Settings structure for renderer.
-data Settings = Settings { width :: !Int, height :: !Int, samples :: !Int, randomSeed :: !StdGen } deriving (Show)
+data Settings = Settings { width :: !Int, height :: !Int, samples :: !Int, randomSeed :: !StdGen, giMode :: !(Maybe Int) } deriving (Show)

@@ -20,12 +20,17 @@ import qualified Data.Array.Repa as R
 import Data.Array.Repa (Array, D, Z(..), DIM2, DIM3, (:.)(..))
 import Data.Array.Repa.Repr.Vector
 
+import Data.Maybe
+
 -- | Root node of a ray tree. Branches to an arbitrary number of 'Sample's.
 type Pixel = [Sample]
 
 -- | Builds a ray tree for a pixel.
 tracePixel :: [Ray] -> Render Pixel
-tracePixel = P.mapM (traceSample 1)
+tracePixel rays = do
+    (_, gimode) <- ask
+    let depth = fromMaybe 1 gimode
+    P.mapM (traceSample depth) rays
 
 -- | Evaluates the ray tee under a pixel to determine a final 'Colour' value.
 evalPixel :: Pixel -> Colour

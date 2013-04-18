@@ -61,4 +61,4 @@ genRandomOffsets samp rand = pair rands
 
 -- | Generate pixel rays for the camera.
 makeCameraRays :: Settings -> View -> [[Ray]]
-makeCameraRays (Settings w h samples rand) view = map (map (perspectiveProjection view)) (pixelGrid (genRandomOffsets samples rand) view (fromIntegral w) (fromIntegral h))
+makeCameraRays (Settings w h samples rand _) view = map (map (perspectiveProjection view)) (pixelGrid (genRandomOffsets samples rand) view (fromIntegral w) (fromIntegral h))

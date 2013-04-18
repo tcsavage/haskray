@@ -17,7 +17,7 @@ import Control.Monad.Parallel
 import Control.Parallel
 
 -- | Render monad type alias.
-type Render a = ReaderT ObjectStructure (Rand StdGen) a
+type Render a = ReaderT (ObjectStructure, Maybe Int) (Rand StdGen) a
 
 -- | Doesn't produce same result as @ma >>= (\a -> mb >>= (\b -> f a b))@.
 instance MonadParallel (Rand StdGen) where
@@ -29,5 +29,5 @@ instance MonadParallel (Rand StdGen) where
         a `par` b `pseq` f a b
 
 -- | Run Render monad.
-runRender :: Render a -> ObjectStructure -> StdGen -> a
+runRender :: Render a -> (ObjectStructure, Maybe Int) -> StdGen -> a
 runRender m a = evalRand (runReaderT m a)

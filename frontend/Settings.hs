@@ -4,7 +4,15 @@ import System.Random
 import Control.Applicative
 import HaskRay
 
-data Setting = Width Int | Height Int | Samples Int | RandomGen StdGen | OutputFile FilePath | OpenGLView deriving (Show)
+data Setting = Width Int
+             | Height Int
+             | Samples Int
+             | RandomGen StdGen
+             | GIMode Int
+             | InputFile FilePath
+             | OutputFile FilePath
+             | OpenGLView
+             deriving (Show)
 
 getWidth :: [Setting] -> Maybe Int
 getWidth [] = Nothing
@@ -26,6 +34,16 @@ getSeed [] = Nothing
 getSeed ((RandomGen x):_) = Just x
 getSeed (_:xs) = getSeed xs
 
+getGIMode :: [Setting] -> Maybe Int
+getGIMode [] = Nothing
+getGIMode ((GIMode x):_) = if x > 0 then Just x else Nothing
+getGIMode (_:xs) = getGIMode xs
+
+getInputFile :: [Setting] -> Maybe FilePath
+getInputFile [] = Nothing
+getInputFile ((InputFile x):_) = Just x
+getInputFile (_:xs) = getInputFile xs
+
 getFilePath :: [Setting] -> Maybe FilePath
 getFilePath [] = Nothing
 getFilePath ((OutputFile x):_) = Just x
@@ -39,8 +57,9 @@ getOpenGLView (_:xs) = getOpenGLView xs
 -- | Generate a renderer settings value from a list of settings.
 fromSettingList :: StdGen -> [Setting] -> Maybe Settings
 fromSettingList defRand xs = do
-	w <- getWidth xs
-	h <- getHeight xs
-	s <- getSamples xs
-	r <- (getSeed xs <|> Just defRand)
-	return $ Settings w h s r
+    w <- getWidth xs
+    h <- getHeight xs
+    s <- getSamples xs
+    r <- (getSeed xs <|> Just defRand)
+    let g = getGIMode xs
+    return $ Settings w h s r g

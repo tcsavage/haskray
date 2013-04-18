@@ -130,6 +130,8 @@ readArgs ("-s":s:xs)
     | all isDigit s = Samples (read s) : readArgs xs
     | otherwise = error $ "Samples not a number"
 readArgs ("-r":r:xs) = (RandomGen $ read r) : readArgs xs
+readArgs ("-g":m:xs) = (GIMode $ read m) : readArgs xs
+readArgs ("-i":fp:xs) = InputFile fp : readArgs xs
 readArgs ("-o":fp:xs) = OutputFile fp : readArgs xs
 #ifdef GLView
 readArgs ("-glview":xs) = OpenGLView : readArgs xs
@@ -149,8 +151,9 @@ main = do
     tex <- loadTexture "tex-spheremap.bmp"
     --let scene = optimiseScene (Scene (skydomeTestObjects tex) camera)
     --writeFile "scenetest.scn" $ serialize scene
-    sceneText <- readFile "scenetest.scn"
-    scene <- (deserialize) sceneText
+    let inp = fromMaybe (error "No input file given") $ getInputFile settings
+    sceneText <- readFile inp
+    scene <- deserialize sceneText
     let pbuf = render rsettings scene
     case getFilePath settings of
         Just filepath -> do
