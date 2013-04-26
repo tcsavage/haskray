@@ -1,0 +1,12 @@
+SceneRep
+[ObjectRep (ShapeRep "Plane" "Plane (Vector3 {x3 = 0, y3 = (-1), z3 = 0}) 5") (ShadedRep (FlatRep (Vector3 {x3 = 0.8, y3 = 0.8, z3 = 0.8})))
+,ObjectRep (ShapeRep "Plane" "Plane (Vector3 {x3 = 0, y3 = (1), z3 = 0}) 18") (ShadedRep (FlatRep (Vector3 {x3 = 0.8, y3 = 0.8, z3 = 0.8})))
+,ObjectRep (ShapeRep "Plane" "Plane (Vector3 {x3 = 1, y3 = 0, z3 = 0}) (14)") (ShadedRep (FlatRep (Vector3 {x3 = 0.8, y3 = 0, z3 = 0})))
+,ObjectRep (ShapeRep "Plane" "Plane (Vector3 {x3 = (-1), y3 = 0, z3 = 0}) (14)") (ShadedRep (FlatRep (Vector3 {x3 = 0, y3 = 0.8, z3 = 0})))
+,ObjectRep (ShapeRep "Plane" "Plane (Vector3 {x3 = 0, y3 = 0, z3 = (-1)}) (18)") (ShadedRep (FlatRep (Vector3 {x3 = 0.8, y3 = 0.8, z3 = 0.8})))
+,ObjectRep (ShapeRep "Sphere" "Sphere (Vector3 {x3 = 2.0, y3 = -15.0, z3 = -8.0}) 1.0") (EmissiveRep (Vector3 {x3 = 1.0, y3 = 1.0, z3 = 1.0}) 400.0)
+,ObjectRep (ShapeRep "Sphere" "Sphere (Vector3 {x3 = -8.0, y3 = 0.0, z3 = 8.0}) 5.0") (ShadedRep (FlatRep (Vector3 {x3 = 0.0, y3 = 1.0, z3 = 0.0})))
+,ObjectRep (ShapeRep "Sphere" "Sphere (Vector3 {x3 = 8.0, y3 = 3.0, z3 = 4.0}) 2.0") (ShadedRep (FlatRep (Vector3 {x3 = 1.0, y3 = 0.0, z3 = 0.0})))
+,ObjectRep (ShapeRep "Sphere" "Sphere (Vector3 {x3 = 5.0, y3 = 1.0, z3 = 10.0}) 4.0") ReflectiveRep
+]
+(View {position = Vector3 {x3 = 0.0, y3 = -10.0, z3 = -80.0}, lookAt = Vector3 {x3 = 0.0, y3 = -5.0, z3 = 10.0}, upVec = Vector3 {x3 = 0.5, y3 = -0.5, z3 = 0.0}, fov = 30.0})

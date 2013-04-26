@@ -52,12 +52,6 @@ prop_vector_applicativelaws_2 x1 = (pure f <*> pure x1) == (pure (f x1) :: Vec3)
 	where
 		f = (*2)
 
-prop_proxtest :: Double -> Double -> Bool
-prop_proxtest d1 d2 = (d1 ~= d2) == (d1 == d2)
-
-prop_test :: Int -> Bool
-prop_test x = x + 0 == x
-
 prop_testMagSq :: Double -> Bool
 prop_testMagSq x = magSquared (Vector3 x 0 0) == x**2
 

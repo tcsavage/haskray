@@ -45,5 +45,7 @@ glDisp settings scene array = do
 		blendFunc $= (One, OneMinusSrcAlpha)
 		depthFunc $= Just Less
 
+		clearColor $= Color4 0 0 0 1
+
 		-- Start rendering
 		mainLoop

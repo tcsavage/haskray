@@ -68,8 +68,8 @@ loadTexture path = do
 indexTextureUV :: Array V DIM2 Colour -> Vec2 -> Colour
 indexTextureUV tex (Vector2 u v)
     | u > 1 || v > 1 || u < 0 || v < 0 = Vector3 0 0 0 -- Default to black when out of range
-    | otherwise = R.index tex (Z :. u' :. v')
+    | otherwise = R.index tex (Z :. v' :. u')
     where
-        (Z :. w :. h) = R.extent tex
+        (Z :. h :. w) = R.extent tex
         u' = floor $ u * fromIntegral (w-1)
         v' = floor $ v * fromIntegral (h-1)

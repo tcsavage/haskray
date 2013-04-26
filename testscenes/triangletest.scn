@@ -1,0 +1,6 @@
+SceneRep
+[ObjectRep (ShapeRep "Plane" "Plane (Vector3 {x3 = 0, y3 = (-1), z3 = 0}) 5") (ShadedRep (FlatRep (Vector3 {x3 = 0.8, y3 = 0.8, z3 = 0.8})))
+,ObjectRep (ShapeRep "Sphere" "Sphere (Vector3 {x3 = 2.0, y3 = -15.0, z3 = -8.0}) 1.0") (EmissiveRep (Vector3 {x3 = 1.0, y3 = 1.0, z3 = 1.0}) 400.0)
+,ObjectRep (ShapeRep "Mesh" "Mesh (Vector3 {x3 = 0.0, y3 = -8.0, z3 = 0.0}) [Triangle (Vertex (Vector3 {x3 = 0, y3 = 0, z3 = 0}) (Vector3 {x3 = 0, y3 = 0, z3 = 1}) (Vector2 {x2 = 0, y2 = 0})) (Vertex (Vector3 {x3 = 10, y3 = 0, z3 = 0}) (Vector3 {x3 = 0, y3 = 0, z3 = 1}) (Vector2 {x2 = 1, y2 = 0})) (Vertex (Vector3 {x3 = 10, y3 = 10, z3 = 0}) (Vector3 {x3 = 0, y3 = 0, z3 = 0}) (Vector2 {x2 = 1, y2 = 1}))]") (ShadedRep (FlatRep (Vector3 {x3 = 1.0, y3 = 0.0, z3 = 0.0})))
+]
+(View {position = Vector3 {x3 = 0.0, y3 = -10.0, z3 = -80.0}, lookAt = Vector3 {x3 = 5.0, y3 = -3.0, z3 = 0.0}, upVec = Vector3 {x3 = 0.0, y3 = -1.0, z3 = 0.0}, fov = 30.0})
