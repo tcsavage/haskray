@@ -3,14 +3,17 @@ HaskRay
 
 Path tracing ray tracer implemented in Haskell.
 
-Suggested Method of Testing
----------------------------
+Experimental Branch
+-------------------
 
-* Install Haskell Platform
-* Execute `cabal update`
-* Install cabal-dev: `cabal install cabal-dev`
-* Compile and install sandboxed package: `cabal-dev install --cabal-install-arg=--flags=-glview`
-* Run with `./cabal-dev/bin/HaskRay -w WIDTH -h HEIGHT -s SAMPLES -i INPUT_FILE -o OUTPUT_FILE [-r RANDOM_SEED] [-g GLOBAL_ILLUMINATION_DEPTH]`
+This program was originally developed for my final year project at the University of Portsmouth. This branch improves and extends the original codebase with features and concepts outside the original project scope.
+
+Some of the improvements being investigated include:
+
+* Flexible Arrow-based material/shading system
+* Improved parallism
+* Better memory usage and speed
+* Full Blender integration (tcsavage/haskray-blender)
 
 Prereqs
 -------
