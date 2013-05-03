@@ -14,46 +14,49 @@ getAll
 
 import HaskRay.Vector
 import HaskRay.Geometry
+import HaskRay.Material
+import HaskRay.Ray
 
 import Control.Applicative
 import Control.Monad
 import Data.List
+import Data.Maybe
 
 {-|
 Octree type.
 Nodes are referenced from top-down perspective, north-west high/low => nwh/nwl etc.
 -}
-data Octree = Leaf !Vec3 !Scalar ![Object]
-            | Branch { pos :: !Vec3, size :: !Scalar, nwh, nwl, neh, nel, swh, swl, seh, sel :: !Octree } deriving (Show)
+data Octree = Leaf !Vec3 !Scalar ![Shape]
+            | Branch { pos :: !Vec3, size :: !Scalar, nwh, nwl, neh, nel, swh, swl, seh, sel :: !Octree }
 
 -- | List of all infinite objects, octree and all objects together.
-type ObjectStructure = ([Object], Octree, [Object])
+type ObjectStructure = ([Shape], Octree, [Shape])
 
 -- | Find closest intersection in object structure.
-closestIntersectObStruct :: Ray -> ObjectStructure -> Maybe (Scalar, Intersection, Object)
+closestIntersectObStruct :: Ray -> ObjectStructure -> Maybe (Scalar, Intersection, Material () (BSDF Colour))
 closestIntersectObStruct ray (inf, oct, _) = closest closestInf closestFin
     where
         closest Nothing x = x
         closest x Nothing = x
         closest x@(Just (d1,_,_)) y@(Just (d2,_,_)) = if d1 < d2 then x else y
-        closestInf = closestIntersectOb ray inf
-        closestFin = closestIntersectOct ray oct
+        closestInf = closestIntersect inf ray
+        closestFin = closestIntersectOct oct ray
 
 -- | Maximum depth of octree.
 maxDepth :: Int
 maxDepth = 3
 
 -- | Build an octree-optimised object structure (infinite objects, finite object octree) from a list of objects.
-mkObStruct :: [Object] -> ObjectStructure
+mkObStruct :: [Shape] -> ObjectStructure
 mkObStruct obs = (inf, mkOctree fin, obs)
     where
-        (inf, fin) = partition isInfiniteOb obs
+        (inf, fin) = partition (\s -> boundingBox s == Nothing) obs
 
 -- | Build an octree from a list of Objects.
-mkOctree :: [Object] -> Octree
+mkOctree :: [Shape] -> Octree
 mkOctree os = reduceLeaves 0 $ Leaf center width os
     where
-        objbbs = boundObjects os
+        objbbs = boundShapes os
         center = boundingCubeCenter objbbs
         width = boundingCubeSize objbbs
 
@@ -109,26 +112,26 @@ bbFromBranch pos size = BoundingBox (pos `add` dif) (pos `add` neg dif)
         dif = pure $ size/2
 
 -- | Sort objects into octree membership groups.
-sortObjects :: [Object] -> Vec3 -> Scalar -> [Object]
-sortObjects os pos size = filter (intersectBoxes (bbFromBranch pos size) . boundingBoxOb) $ filter (not . isInfiniteOb) os
+sortObjects :: [Shape] -> Vec3 -> Scalar -> [Shape]
+sortObjects os pos size = filter (intersectBoxes (bbFromBranch pos size) . fromJust . boundingBox) $ filter (\s -> boundingBox s /= Nothing) os
 
 -- | Get all objects from sectors the ray passes through.
-filterObsByIntersection :: Octree -> Ray -> [Object]
+filterObsByIntersection :: Octree -> Ray -> [Shape]
 filterObsByIntersection (Leaf pos size obs) ray
     | intersectBox ray $ bbFromBranch pos size = obs
     | otherwise = []
 filterObsByIntersection (Branch pos size nwh nwl neh nel swh swl seh sel) ray
-    | intersectBox ray $ bbFromBranch pos size = nub $ concatMap (`filterObsByIntersection` ray) [nwh, nwl, neh, nel, swh, swl, seh, sel]
+    | intersectBox ray $ bbFromBranch pos size = concatMap (`filterObsByIntersection` ray) [nwh, nwl, neh, nel, swh, swl, seh, sel]
     | otherwise = []
 
 -- | Get all objects inside an object structure which may possibly intersect with a ray..
-getObjects :: ObjectStructure -> Ray -> [Object]
+getObjects :: ObjectStructure -> Ray -> [Shape]
 getObjects (inf, oct, _) ray = inf ++ filterObsByIntersection oct ray
 
 -- | Get all objects inside an object structure.
-getAll :: ObjectStructure -> [Object]
+getAll :: ObjectStructure -> [Shape]
 getAll (_, _, os) = os
 
 -- | Find the closest intersection with an object structure.
-closestIntersectOct :: Ray -> Octree -> Maybe (Scalar, Intersection, Object)
-closestIntersectOct ray = closestIntersectOb ray . flip filterObsByIntersection ray
+closestIntersectOct :: Octree -> Ray -> Maybe (Scalar, Intersection, Material () (BSDF Colour))
+closestIntersectOct octree ray = closestIntersect (filterObsByIntersection octree ray) ray

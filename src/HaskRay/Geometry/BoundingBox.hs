@@ -9,7 +9,7 @@ intersectBoxes
 ) where
 
 import HaskRay.Vector
-import HaskRay.Geometry.Ray
+import HaskRay.Ray
 
 import Control.Applicative
 

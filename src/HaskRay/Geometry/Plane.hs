@@ -1,35 +1,34 @@
-{-# LANGUAGE DeriveDataTypeable #-}
-
 module HaskRay.Geometry.Plane
 (
-Plane(..)
+Plane(..),
+mkPlaneShape
 ) where
 
 import HaskRay.Vector
-import HaskRay.Geometry.Classes
-import HaskRay.Geometry.Ray
+import HaskRay.Geometry.Shape
+import HaskRay.Ray
 import HaskRay.Geometry.Util
-
-import Data.Typeable
+import HaskRay.Material
 
 {-|
 Defines an infinite plane.
 
 > Plane (Vector3 a b c) d => ax + by + cz + d = 0
 -}
-data Plane = Plane !Vec3 !Scalar deriving (Show, Read, Eq, Typeable)
+data Plane = Plane !Vec3 !Scalar deriving (Show, Read, Eq)
 
-instance Shape Plane where
-    intersect ray@(Ray origin dir) (Plane normal d, material)
-        | vd == 0 = Nothing
-        | t > epsilon = Just (t, Intersection (if vd > 0 then neg normal else normal) hitpoint ray material)
-        | otherwise = Nothing
-        where
-            vd = normalize normal `dot` dir
-            v0 = negate ((normalize normal `dot` origin) + d)
-            t = v0 / vd
-            hitpoint = positionAtTime ray t
-    center (Plane normal d) = scale d normal
-    isInfinite = const True
-    boundingBox = error "Infinite plane"
-    mapTexture = error "Can't texture plane (yet)"
+mkPlaneShape :: Plane -> Material () (BSDF Colour) -> Shape
+mkPlaneShape p m = Shape { intersect = intersect p m, center = center p, boundingBox = Nothing, mapTexture = mapTexture p, emissive = isEmissive m }
+    where
+        intersect (Plane normal d) material ray@(Ray origin dir)
+            | vd == 0 = Nothing
+            | t > epsilon = Just (t, Intersection (if vd > 0 then neg normal else normal) hitpoint ray, material)
+            | otherwise = Nothing
+            where
+                vd = normalize normal `dot` dir
+                v0 = negate ((normalize normal `dot` origin) + d)
+                t = v0 / vd
+                hitpoint = positionAtTime ray t
+        center (Plane normal d) = scale d normal
+        mapTexture = error "Can't texture plane (yet)"
+

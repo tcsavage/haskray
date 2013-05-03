@@ -1,5 +1,3 @@
-{-# LANGUAGE DeriveDataTypeable #-}
-
 module HaskRay.Geometry.Mesh
 (
 -- *** Vertex
@@ -17,7 +15,7 @@ Mesh(..)
 
 import HaskRay.Vector
 import HaskRay.Geometry.BoundingBox
-import HaskRay.Geometry.Classes
+import HaskRay.Geometry.Shape
 import HaskRay.Geometry.Plane
 import HaskRay.Geometry.Ray
 
@@ -32,7 +30,7 @@ translateVertex :: Vec3 -> Vertex -> Vertex
 translateVertex vec (Vertex p n uv) = Vertex (p `add` vec) n uv
 
 -- | Triangles are composed of three vertices.
-data Triangle = Triangle !Vertex !Vertex !Vertex deriving (Show, Read, Eq, Typeable)
+data Triangle = Triangle !Vertex !Vertex !Vertex deriving (Show, Read, Eq)
 
 -- | Moves a triangle by a vector.
 translateTriangle :: Vec3 -> Triangle -> Triangle
@@ -67,37 +65,39 @@ textureSpace (Vector2 u v) (Triangle (Vertex _ _ a) (Vertex _ _ b) (Vertex _ _ c
         ab = b `sub` a
         ac = c `sub` a
 
-instance Shape Triangle where
-    -- Barycentric technique. From <http://www.blackpawn.com/texts/pointinpoly/default.html>
-    intersect ray (tri@(Triangle (Vertex p1 _ _ ) (Vertex p2 _ _ ) (Vertex p3 _ _ )), m) = do
-        is@(_, Intersection _ p _ _) <- ray `intersect` (plane, m)
-        if pointInTriangle p then Just is else Nothing
-        where
-            plane = Plane norm dist
-                where
-                    norm = normalize ((p2 `sub` p1) `cross` (p3 `sub` p1))
-                    dist = negate $ norm `dot` p1
-            pointInTriangle p = (u >= 0) && (v >= 0) && (u + v < 1)
-                where
-                    (Vector2 u v) = pointToUV p tri
-
-    center (Triangle (Vertex v1 _ _) (Vertex v2 _ _) (Vertex v3 _ _)) = scale (1/3) (v1 `add` v2 `add` v3)
-    boundingBox (Triangle (Vertex v1 _ _) (Vertex v2 _ _) (Vertex v3 _ _)) = BoundingBox maxp minp
-        where
-            (minp, maxp) = minmaxPoints [v1,v2,v3]
-    mapTexture tri point = textureSpace (pointToUV point tri) tri
+mkTriangleShape :: Triangle -> Material -> Shape
+mkTriangleShape t m = Shape { intersect = intersect t m, center = center t, boundingBox = boundingBox t, mapTexture t }
+    where
+        intersect ray (tri@(Triangle (Vertex p1 _ _ ) (Vertex p2 _ _ ) (Vertex p3 _ _ )), m) = do
+            is@(_, Intersection _ p _, mat) <- ray `intersect` (plane, m)
+            if pointInTriangle p then Just is else Nothing
+            where
+                plane = mkPlaneShape (Plane norm dist) m
+                    where
+                        norm = normalize ((p2 `sub` p1) `cross` (p3 `sub` p1))
+                        dist = negate $ norm `dot` p1
+                pointInTriangle p = (u >= 0) && (v >= 0) && (u + v < 1)
+                    where
+                        (Vector2 u v) = pointToUV p tri
+        center (Triangle (Vertex v1 _ _) (Vertex v2 _ _) (Vertex v3 _ _)) = scale (1/3) (v1 `add` v2 `add` v3)
+        boundingBox (Triangle (Vertex v1 _ _) (Vertex v2 _ _) (Vertex v3 _ _)) = Just $ BoundingBox maxp minp
+            where
+                (minp, maxp) = minmaxPoints [v1,v2,v3]
+        mapTexture tri point = textureSpace (pointToUV point tri) tri
 
 -- | A mesh is a list of triangles.
 data Mesh = Mesh Vec3 [Triangle] deriving (Show, Read, Eq, Typeable)
 
-instance Shape Mesh where
-    intersect ray (mesh@(Mesh origin tris), m) = if intersectBox ray (boundingBox mesh) then test else Nothing
-        where
-            test = msum $ map (intersect ray) $ zip (map (translateTriangle origin) tris) $ repeat m
-    center (Mesh _ tris) = scale (fromIntegral $ length tris) . mconcat . map center $ tris
-    boundingBox (Mesh pos ts) = BoundingBox maxp minp
-        where
-            tris = map (translateTriangle pos) ts
-            verts = join $ map (\(Triangle (Vertex v1 _ _) (Vertex v2 _ _) (Vertex v3 _ _)) -> [v1,v2,v3]) tris
-            (minp, maxp) = minmaxPoints verts
-    mapTexture = error "Can't texture mesh (yet)"
+mkMeshShape :: Mesh -> Material -> Shape
+mkMeshShape t m = Shape { intersect = intersect t m, center = center t, boundingBox = boundingBox t, mapTexture t }
+    where
+        intersect ray (mesh@(Mesh origin tris), m) = if intersectBox ray (boundingBox mesh) then test else Nothing
+            where
+                test = msum $ map (intersect ray) $ zip (map (translateTriangle origin) tris) $ repeat m
+        center (Mesh _ tris) = scale (fromIntegral $ length tris) . mconcat . map center $ tris
+        boundingBox (Mesh pos ts) = Just $ BoundingBox maxp minp
+            where
+                tris = map (translateTriangle pos) ts
+                verts = join $ map (\(Triangle (Vertex v1 _ _) (Vertex v2 _ _) (Vertex v3 _ _)) -> [v1,v2,v3]) tris
+                (minp, maxp) = minmaxPoints verts
+        mapTexture = error "Can't texture mesh (yet)"

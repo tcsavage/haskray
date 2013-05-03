@@ -6,6 +6,7 @@ makeCameraRays
 
 import HaskRay.Vector
 import HaskRay.Geometry
+import HaskRay.Ray
 import HaskRay.Settings
 import System.Random
 

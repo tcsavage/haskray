@@ -1,47 +1,26 @@
 module HaskRay.Geometry
 (
--- ** Rays and Intersections
-Ray(..),
-Intersection(..),
-closestIntersection,
-
 -- ** Shapes
 Shape(..),
 Plane(..),
 Sphere(..),
-Vertex(..),
-Triangle(..),
-Mesh(..),
-
--- ** Objects
-Object(..),
-
--- *** Predicates
-isEmissive,
-filterSphere,
-
--- *** Shape Operation Wrappers
-intersectOb,
-closestIntersectOb,
-centerOb,
-isInfiniteOb,
-boundingBoxOb,
-mapTextureOb,
+--Vertex(..),
+--Triangle(..),
+--Mesh(..),
 
 -- ** Bounding Box
 BoundingBox(..),
 minPoint,
 maxPoint,
 minmaxPoints,
-boundObjects,
+boundShapes,
 intersectBox,
-intersectBoxes
+intersectBoxes,
+closestIntersect
 ) where
 
 import HaskRay.Geometry.BoundingBox
-import HaskRay.Geometry.Classes
-import HaskRay.Geometry.Mesh
-import HaskRay.Geometry.Object
+--import HaskRay.Geometry.Mesh
 import HaskRay.Geometry.Plane
-import HaskRay.Geometry.Ray
 import HaskRay.Geometry.Sphere
+import HaskRay.Geometry.Shape

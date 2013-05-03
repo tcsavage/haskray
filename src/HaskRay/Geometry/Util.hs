@@ -1,7 +1,7 @@
 module HaskRay.Geometry.Util where
 
 import HaskRay.Vector
-import HaskRay.Geometry.Ray
+import HaskRay.Ray
 
 -- | Find the position of a point a specified distance along a ray.
 positionAtTime :: Ray -> Scalar -> Vec3

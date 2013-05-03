@@ -40,11 +40,10 @@ library
     HaskRay.Geometry
   other-modules:
     HaskRay.Geometry.BoundingBox
-    HaskRay.Geometry.Classes
-    HaskRay.Geometry.Mesh
-    HaskRay.Geometry.Object
+    --HaskRay.Geometry.Mesh
+    HaskRay.Geometry.Shape
     HaskRay.Geometry.Plane
-    HaskRay.Geometry.Ray
+    HaskRay.Ray
     HaskRay.Geometry.Sphere
     HaskRay.Geometry.Util
     HaskRay.Material
@@ -68,7 +67,8 @@ library
   if flag(debug)
     ghc-options:         -prof -fprof-auto
   else
-    ghc-options:         -threaded -O2 -fwarn-type-defaults -fwarn-monomorphism-restriction -fwarn-incomplete-patterns -fwarn-overlapping-patterns -fwarn-unused-imports -fwarn-unused-binds -fwarn-missing-signatures
+    ghc-options:         -threaded -O2
+--    ghc-options:         -threaded -O2 -fwarn-type-defaults -fwarn-monomorphism-restriction -fwarn-incomplete-patterns -fwarn-overlapping-patterns -fwarn-unused-imports -fwarn-unused-binds -fwarn-missing-signatures
 
 executable HaskRay
   main-is:             Main.hs

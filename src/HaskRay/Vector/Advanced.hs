@@ -33,7 +33,7 @@ import Data.Monoid
 -- | Typeclass for vector types.
 class Vector v where
     -- | Zero vector. Magnitude == 0.
-    vzero :: (Floating a, Eq a) => v a
+    vzero :: (Num a) => v a
     -- | Dot product.
     dot :: (Floating a, Eq a) => v a -> v a -> a
     -- | Scalar multiplication.
@@ -46,9 +46,9 @@ class Vector v where
     -- | Negate.
     neg :: (Floating a, Eq a) => v a -> v a
     -- | Vector addition.
-    add :: (Floating a, Eq a) => v a -> v a -> v a
+    add :: (Num a) => v a -> v a -> v a
     -- | Vector subtraction.
-    sub :: (Floating a, Eq a) => v a -> v a -> v a
+    sub :: (Num a) => v a -> v a -> v a
     -- | Make unit vector.
     normalize :: (Floating a, Eq a) => v a -> v a
 
