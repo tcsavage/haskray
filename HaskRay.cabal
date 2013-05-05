@@ -7,23 +7,17 @@ name:                HaskRay
 version:             0.1.0.0
 
 author:              Tom Savage
-maintainer:          cam01005@port.ac.uk
+maintainer:          Tom Savage
 category:            Graphics
 build-type:          Simple
 cabal-version:       >=1.8
-data-dir:            frontend-data
-data-files:          ui/*.html, ui/*.css, ui/*.js, ui/icons/*.png
 
 -- Build flags
--- With Cabal, use: --flags=-glview
--- With Cabal-dev, use: --cabal-install-arg=--flags=-glview
+-- With Cabal, use: --flags=-buildfrontend
+-- With Cabal-dev, use: --cabal-install-arg=--flags=-buildfrontend
 
 flag buildfrontend
   description:         Build the front-end as well as the library
-  default:             True
-
-flag glview
-  description:         Include OpenGL viewer in front-end
   default:             True
 
 flag criterion-benchmarks
@@ -50,14 +44,7 @@ library
     HaskRay.Monad
     HaskRay.Octree
     HaskRay.Out
-    HaskRay.Parser
     HaskRay.Projection
-    HaskRay.RayTree
-    HaskRay.RayTree.IO
-    HaskRay.RayTree.Light
-    HaskRay.RayTree.Pixel
-    HaskRay.RayTree.Sample
-    HaskRay.RayTree.String
     HaskRay.Scene
     HaskRay.Settings
     HaskRay.Vector
@@ -78,13 +65,8 @@ executable HaskRay
       ghc-options:         -prof -fprof-auto -rtsopts -with-rtsopts=-xc
     else
       ghc-options:         -threaded -eventlog -rtsopts -with-rtsopts=-N -O2 -fwarn-type-defaults -fwarn-monomorphism-restriction -fwarn-incomplete-patterns -fwarn-overlapping-patterns -fwarn-unused-imports -fwarn-unused-binds -fwarn-missing-signatures
-    if flag(glview)
-      other-modules:       GLDisplay, GLDisplay.Display, GLDisplay.Input, GLDisplay.Renderable GLDisplay.Util, GLDisplay.UI, Settings
-      build-depends:       base ==4.5.*, HaskRay, awesomium, time, random, GLUT >= 2.3, OpenGL >=2.6, async, Tensor, binary, repa
-      cpp-options:         -DGLView
-    else
-      other-modules:       Settings
-      build-depends:       base ==4.5.*, HaskRay, random, binary
+    other-modules:       Settings
+    build-depends:       base ==4.5.*, HaskRay, random, binary
   else
     buildable:           False
 

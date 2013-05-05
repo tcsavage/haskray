@@ -18,11 +18,11 @@ Defines an infinite plane.
 data Plane = Plane !Vec3 !Scalar deriving (Show, Read, Eq)
 
 mkPlaneShape :: Plane -> Material () (BSDF Colour) -> Shape
-mkPlaneShape p m = Shape { intersect = intersect p m, center = center p, boundingBox = Nothing, mapTexture = mapTexture p, emissive = isEmissive m }
+mkPlaneShape p m = Shape { intersect = intersect p m, center = center p, boundingBox = Nothing, mapTexture = mapTexture p, emissiveShape = isEmissive m }
     where
         intersect (Plane normal d) material ray@(Ray origin dir)
             | vd == 0 = Nothing
-            | t > epsilon = Just (t, Intersection (if vd > 0 then neg normal else normal) hitpoint ray, material)
+            | t > epsilon = Just (t, Intersection hitpoint (if vd > 0 then neg normal else normal) ray, material)
             | otherwise = Nothing
             where
                 vd = normalize normal `dot` dir

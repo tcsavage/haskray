@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP, OverloadedStrings #-}
+{-# LANGUAGE CPP, OverloadedStrings, Arrows #-}
 
 module Main where
 
@@ -9,37 +9,34 @@ import Data.Char
 import Data.Maybe
 import System.IO
 import Control.Monad
+import Control.Arrow
 import Text.Printf
 import Data.Binary
 
 import Settings
 
-#ifdef GLView
-import Control.Concurrent.Async
-import GLDisplay
-#endif
+diffuseM :: Colour -> Material () (BSDF Colour)
+diffuseM col = proc () -> do
+    out <- diffuse -< col
+    returnA -< out
 
-mesh = Mesh (Vector3 8 (-5) (-5)) [Triangle v1 v2 v3]
-    where
-        v1 = Vertex (Vector3 0 0 0) (Vector3 0 0 0) (Vector2 0 0)
-        v2 = Vertex (Vector3 3 0 0) (Vector3 0 0 0) (Vector2 0 0)
-        v3 = Vertex (Vector3 0 3 0) (Vector3 0 0 0) (Vector2 0 0)
+emissiveM :: Material () (BSDF Colour)
+emissiveM = proc () -> do
+    out <- emissive -< (Vector3 1 1 1, 100)
+    returnA -< out
 
-objects :: Texture -> [Object]
-objects tex = [Object (Plane (normalize (Vector3 0 (-1) 0)) 5) (Shaded $ Flat (Vector3 0.8 0.8 0.8))
-        ,Object (Plane (normalize (Vector3 0 (1) 0)) 18) (Shaded $ Flat (Vector3 0.8 0.8 0.8))
-        ,Object (Plane (normalize (Vector3 1 0 0)) (14)) (Shaded $ Flat (Vector3 0.8 0 0))
-        ,Object (Plane (normalize (Vector3 (-1) 0 0)) (14)) (Shaded $ Flat (Vector3 0 0.8 0))
-        ,Object (Plane (normalize (Vector3 0 0 (-1))) (18)) (Shaded $ Flat (Vector3 0.8 0.8 0.8))
-        ,Object (Sphere (Vector3 1 1 1) 3) (Transmissive 1.05 0.9)
-        ,Object (Sphere (Vector3 5 1 10) 4) (Reflective)
-        --,Object (Sphere (Vector3 (-8) 0 8) 5) (Shaded $ Flat (Vector3 0 1 0))
-        ,Object (Sphere (Vector3 (-8) 0 8) 5) (Shaded $ Textured tex)
-        ,Object (Sphere (Vector3 8 3 4) 2) (Shaded $ Flat (Vector3 1 0 0))
-        --,Object (Sphere (Vector3 2 (-15) 2) 1) (Emissive (Vector3 1 0 0) 400)
-        ,Object (Sphere (Vector3 (2) (-15) (-8)) 1) (Emissive (Vector3 1 1 1) 400)
-        --,Object mesh3 (Shaded $ Flat (Vector3 1 0.5 0))
-        --,Object texTri (Shaded $ Textured tex)
+objects :: Texture -> [Shape]
+objects tex = [mkPlaneShape (Plane (normalize (Vector3 0 (-1) 0)) 5) (diffuseM (Vector3 0.8 0.8 0.8))
+        ,mkPlaneShape (Plane (normalize (Vector3 0 (1) 0)) 18) (diffuseM (Vector3 0.8 0.8 0.8))
+        ,mkPlaneShape (Plane (normalize (Vector3 1 0 0)) (14)) (diffuseM (Vector3 0.8 0 0))
+        ,mkPlaneShape (Plane (normalize (Vector3 (-1) 0 0)) (14)) (diffuseM (Vector3 0 0.8 0))
+        ,mkPlaneShape (Plane (normalize (Vector3 0 0 (-1))) (18)) (diffuseM (Vector3 0.8 0.8 0.8))
+        --,mkSphereShape (Sphere (Vector3 1 1 1) 3) (Transmissive 1.05 0.9)
+        ,mkSphereShape (Sphere (Vector3 5 1 10) 4) mirror
+        ,mkSphereShape (Sphere (Vector3 (-8) 0 8) 5) (diffuseM (Vector3 0 1 0))
+        --,mkSphereShape (Sphere (Vector3 (-8) 0 8) 5) (Shaded $ Textured tex)
+        ,mkSphereShape (Sphere (Vector3 8 3 4) 2) (diffuseM (Vector3 1 0 0))
+        ,mkSphereShape (Sphere (Vector3 (2) (-15) (-8)) 1) emissiveM
         ]
 
 camera :: View
@@ -47,7 +44,7 @@ camera = View
     {position = (Vector3 0 (-10) (-80))
     ,lookAt = (Vector3 0 (-5) 10)
     ,upVec = (Vector3 0 (-1) 0)
-    ,fov = 80
+    ,fov = 30
     }
 
 readArgs :: [String] -> [Setting]
@@ -65,11 +62,6 @@ readArgs ("-r":r:xs) = (RandomGen $ read r) : readArgs xs
 readArgs ("-g":m:xs) = (GIMode $ read m) : readArgs xs
 readArgs ("-i":fp:xs) = InputFile fp : readArgs xs
 readArgs ("-o":fp:xs) = OutputFile fp : readArgs xs
-#ifdef GLView
-readArgs ("-glview":xs) = OpenGLView : readArgs xs
-#else
-readArgs ("-glview":_) = error "Not compiled with glview enabled"
-#endif
 readArgs args = error ("Unrecognised arguments: " ++ show args)
 
 main :: IO ()
@@ -78,17 +70,11 @@ main = do
     randomSeed <- newStdGen
     let settings = readArgs opts
     let rsettings = fromJust $ fromSettingList randomSeed $ readArgs opts
-    scenestr <- getContents
     tex <- loadTexture "tex-spheremap.bmp"
-    let inp = fromMaybe (error "No input file given") $ getInputFile settings
-    sceneText <- readFile inp
-    scene <- fmap optimiseScene $ deserialize sceneText
+    let scene = Scene (objects tex) camera
     let pbuf = render rsettings scene
     case getFilePath settings of
         Just filepath -> do
             putStrLn $ "Rendering (seed: " ++ (show randomSeed) ++ ")..."
-#ifdef GLView
-            when (getOpenGLView settings) $ glDisp rsettings scene pbuf
-#endif
             saveBMP pbuf filepath
         otherwise -> error "No output file given"

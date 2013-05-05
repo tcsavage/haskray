@@ -11,7 +11,6 @@ data Setting = Width Int
              | GIMode Int
              | InputFile FilePath
              | OutputFile FilePath
-             | OpenGLView
              deriving (Show)
 
 getWidth :: [Setting] -> Maybe Int
@@ -48,11 +47,6 @@ getFilePath :: [Setting] -> Maybe FilePath
 getFilePath [] = Nothing
 getFilePath ((OutputFile x):_) = Just x
 getFilePath (_:xs) = getFilePath xs
-
-getOpenGLView :: [Setting] -> Bool
-getOpenGLView [] = False
-getOpenGLView (OpenGLView:_) = True
-getOpenGLView (_:xs) = getOpenGLView xs
 
 -- | Generate a renderer settings value from a list of settings.
 fromSettingList :: StdGen -> [Setting] -> Maybe Settings

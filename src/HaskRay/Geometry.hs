@@ -3,7 +3,9 @@ module HaskRay.Geometry
 -- ** Shapes
 Shape(..),
 Plane(..),
+mkPlaneShape,
 Sphere(..),
+mkSphereShape,
 --Vertex(..),
 --Triangle(..),
 --Mesh(..),

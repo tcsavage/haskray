@@ -27,7 +27,7 @@ data Shape = Shape {
     -- | Project a texture onto the shape's surface.
     mapTexture :: Vec3 -> Vec2,
     -- | Is the shape emissive.
-    emissive :: Bool
+    emissiveShape :: Bool
 }
 
 -- | Find closest intersection with a list of 'Object's.
