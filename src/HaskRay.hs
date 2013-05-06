@@ -11,6 +11,9 @@ loadTexture,
 diffuse,
 emissive,
 mirror,
+getInidentRay,
+traceM,
+holdout,
 -- * Geometry
 module HaskRay.Geometry,
 -- * Octree
@@ -51,23 +54,30 @@ import Control.Monad.Identity
 
 -- | Render a scene with given settings.
 render :: Settings -> Scene -> Array V DIM2 Colour
-render settings@(Settings w h s rand gim) (Scene os view) = mkArray $ map (traceSamples obs) sampleRays
+render settings@(Settings w h s rand gim) (Scene os view) = mkArray $ evalRender (mapM (traceSamples obs) sampleRays) rand
     where
         obs = mkObStruct os
         sampleRays = makeCameraRays settings view -- [[Ray]]
         mkArray ps = fromListVector (Z :. h :. w) ps
 
-traceSamples :: ObjectStructure -> [Ray] -> Colour
-traceSamples objs rs = scale (1/(fromIntegral $ length rs)) (mconcat $ map (reflected . trace objs) rs)
+traceSamples :: ObjectStructure -> [Ray] -> Render Colour
+traceSamples objs rs = do
+    colours <- mapM (fmap reflected . trace objs) rs
+    return $ scale (1/(fromIntegral $ length rs)) (mconcat colours)
 
-trace :: ObjectStructure -> Ray -> BSDF Colour
-trace objs = maybe holdout (\(_, _, bsdf) -> bsdf) . traceFun objs
+trace :: ObjectStructure -> Ray -> Render (BSDF Colour)
+trace objs ray = do
+    traced <- traceFun objs ray
+    return $ maybe holdout (\(_, _, bsdf, _) -> bsdf) traced
 
-traceFun :: ObjectStructure -> Ray -> Maybe (Scalar, Intersection, BSDF Colour)
+traceFun :: ObjectStructure -> Ray -> Render (Maybe (Scalar, Intersection, BSDF Colour, Bool))
 traceFun objs r = do
-    (d, i, mat) <- closestIntersectObStruct objs r
-    let bsdf = mconcat $ map ((evalMaterial mat (traceFun objs) i) . getOmega i) lights
-    return $ (d, i, scale (1/(fromIntegral $ length lights)) `fmap` bsdf)
+    rand <- get
+    case closestIntersectObStruct objs r of 
+        Nothing -> return Nothing
+        (Just (d, i, mat)) -> do
+            bsdf <- mconcat <$> mapM ((evalMaterial mat (traceFun objs) i) . getOmega i) lights
+            return $ Just (d, i, scale (1/(fromIntegral $ length lights)) `fmap` bsdf, isEmissive mat)
     where
         lights = filter emissiveShape $ getAll objs
-        getOmega i light = center light `sub` ipos i -- TODO: Needs to be random direction
+        getOmega i light = normalize (center light `sub` ipos i) -- TODO: Needs to be random direction

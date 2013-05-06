@@ -15,10 +15,12 @@ import Data.Binary
 
 import Settings
 
+-- Do shadowing.
 diffuseM :: Colour -> Material () (BSDF Colour)
 diffuseM col = proc () -> do
-    out <- diffuse -< col
-    returnA -< out
+    out <- diffuse -< col                                                     -- Get diffuse shading
+    shad <- traceM <<< getInidentRay -< ()                                    -- Test path to light
+    returnA -< maybe holdout (\(_,_,_,e) -> if e then out else holdout) shad  -- Set BSDF to black if in shadow
 
 emissiveM :: Material () (BSDF Colour)
 emissiveM = proc () -> do
@@ -37,6 +39,7 @@ objects tex = [mkPlaneShape (Plane (normalize (Vector3 0 (-1) 0)) 5) (diffuseM (
         --,mkSphereShape (Sphere (Vector3 (-8) 0 8) 5) (Shaded $ Textured tex)
         ,mkSphereShape (Sphere (Vector3 8 3 4) 2) (diffuseM (Vector3 1 0 0))
         ,mkSphereShape (Sphere (Vector3 (2) (-15) (-8)) 1) emissiveM
+        ,mkSphereShape (Sphere (Vector3 (-8) (-15) (0)) 0.5) emissiveM
         ]
 
 camera :: View
