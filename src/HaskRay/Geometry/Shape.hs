@@ -11,6 +11,7 @@ import HaskRay.Vector
 import HaskRay.Material
 import HaskRay.Geometry.BoundingBox
 import HaskRay.Ray
+import HaskRay.Monad
 
 import Control.Monad (join)
 import Data.Maybe (catMaybes)
@@ -27,7 +28,9 @@ data Shape = Shape {
     -- | Project a texture onto the shape's surface.
     mapTexture :: Vec3 -> Vec2,
     -- | Is the shape emissive.
-    emissiveShape :: Bool
+    emissiveShape :: Bool,
+    -- | Calculate a random direction for sampling the shape.
+    randomSampleDir :: Vec3 -> Render Vec3
 }
 
 -- | Find closest intersection with a list of 'Object's.

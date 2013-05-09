@@ -2,9 +2,6 @@ module HaskRay.Ray
 (
 -- *** Ray Type
 Ray(..),
-
--- *** Intersection
-Intersection(..),
 epsilon
 ) where
 
@@ -14,10 +11,6 @@ import Data.List (minimumBy)
 
 -- | Semi-infinate ray.
 data Ray = Ray { rorigin :: !Vec3, rdir :: !Vec3 }
-    deriving (Show, Read, Eq)
-
--- | Records an intersection with geometry.
-data Intersection = Intersection { ipos :: !Vec3, inorm :: !Vec3, iray :: !Ray }
     deriving (Show, Read, Eq)
 
 {-

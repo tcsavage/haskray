@@ -8,6 +8,7 @@ floatingToByte,
 gammaCorrect,
 Material(..),
 evalMaterial,
+Intersection(..),
 BSDF(..),
 Texture,
 loadTexture,
@@ -83,6 +84,9 @@ indexTextureUV tex (Vector2 u v)
         (Z :. h :. w) = R.extent tex
         u' = floor $ u * fromIntegral (w-1)
         v' = floor $ v * fromIntegral (h-1)
+
+-- | Records an intersection with geometry.
+data Intersection = Intersection { ipos :: !Vec3, inorm :: !Vec3, iray :: !Ray }
 
 data BSDF a = BSDF { reflected :: !a, transmitted :: !a } deriving (Show, Read, Eq)
 

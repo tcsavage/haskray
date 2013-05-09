@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FlexibleInstances, OverlappingInstances #-}
 -- Using -XFlexibleInstances we can define a Monoid instance for all instanced of Vector.
 {-# OPTIONS_GHC -funbox-strict-fields #-}
 -- Automatically add an UNPACK pragma for strict records.
@@ -27,6 +27,7 @@ mconcat,
 
 import Prelude hiding (foldr, sum)
 import Control.Applicative
+import Control.DeepSeq
 import Data.Foldable
 import Data.Monoid
 
@@ -141,6 +142,8 @@ All vectors form a monoid under addition.
 instance (Vector v, Floating a, Eq a) => Monoid (v a) where
     mappend = add
     mempty = vzero
+
+instance NFData (Vector3 a) where
 
 -- Scalar type alias.
 type Scalar = Double

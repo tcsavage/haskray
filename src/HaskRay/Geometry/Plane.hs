@@ -18,9 +18,9 @@ Defines an infinite plane.
 data Plane = Plane !Vec3 !Scalar deriving (Show, Read, Eq)
 
 mkPlaneShape :: Plane -> Material () (BSDF Colour) -> Shape
-mkPlaneShape p m = Shape { intersect = intersect p m, center = center p, boundingBox = Nothing, mapTexture = mapTexture p, emissiveShape = isEmissive m }
+mkPlaneShape p m = Shape { intersect = intersect p m, center = center p, boundingBox = Nothing, mapTexture = mapTexture p, emissiveShape = isEmissive m, randomSampleDir = randomSampleDir p }
     where
-        intersect (Plane normal d) material ray@(Ray origin dir)
+        intersect s@(Plane normal d) material ray@(Ray origin dir)
             | vd == 0 = Nothing
             | t > epsilon = Just (t, Intersection hitpoint (if vd > 0 then neg normal else normal) ray, material)
             | otherwise = Nothing
@@ -31,4 +31,5 @@ mkPlaneShape p m = Shape { intersect = intersect p m, center = center p, boundin
                 hitpoint = positionAtTime ray t
         center (Plane normal d) = scale d normal
         mapTexture = error "Can't texture plane (yet)"
+        randomSampleDir (Plane n d) = error "Can't sample infinate plane"
 
