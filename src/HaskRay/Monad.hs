@@ -6,44 +6,33 @@ module HaskRay.Monad
 ,runRender
 ,getRandomR
 ,liftRand
-,module Control.Monad.State
+,module Control.Monad.Trans.State
 ,module System.Random
+,module System.Random.Mersenne.Pure64
 ) where
 
 import Control.Monad (replicateM)
-import Control.Monad.Parallel
-import Control.Monad.State
+import Control.Monad.Trans.State
 import System.Random
+import System.Random.Mersenne.Pure64
 import Control.DeepSeq
 import Control.Parallel
 import Control.Parallel.Strategies
 
 -- | Render monad type alias.
-type Render a = State StdGen a
+type Render a = State PureMT a
 
 instance NFData (Render a) where
 
--- | Doesn't produce same result as @ma >>= (\a -> mb >>= (\b -> f a b))@.
-instance MonadParallel (State StdGen) where
-    bindM2 f ma mb = do
-        (split1, split2) <- fmap split get
-        (ret, rand') <- return $ runEval $ do
-            (a, rand1) <- rpar $ runRender ma split1
-            (b, rand2) <- rseq $ runRender mb split2
-            x <- rseq $ f a b
-            return (x, rand1)
-        put rand'
-        ret
-
 -- | Run Render monad.
-evalRender :: Render a -> StdGen -> a
+evalRender :: Render a -> PureMT -> a
 evalRender = evalState
 
-runRender :: Render a -> StdGen -> (a, StdGen)
+runRender :: Render a -> PureMT -> (a, PureMT)
 runRender = runState
 
 -- | Internal utility function for lifting functions from 'System.Random' into 'Render'.
-liftRand :: (StdGen -> (a, StdGen)) -> Render a
+liftRand :: (PureMT -> (a, PureMT)) -> Render a
 liftRand f = do
     rand <- get
     let (result, rand') = f rand

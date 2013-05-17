@@ -9,6 +9,7 @@ import HaskRay.Geometry
 import HaskRay.Ray
 import HaskRay.Settings
 import System.Random
+import System.Random.Mersenne.Pure64
 
 -- | Camera type.
 data View = View { position :: !Vec3, lookAt :: !Vec3, upVec :: !Vec3, fov :: !Scalar } deriving (Show, Read, Eq)
@@ -51,7 +52,7 @@ pixelGrid randoms (View cameraPos lookingAt viewUp fov) width height = map (map 
 
 -- | Generate a random distribution to use in creating multi-sampled pixels.
 genRandomOffsets :: Int -- ^ Number of samples
-                 -> StdGen -- ^ Random seed
+                 -> PureMT -- ^ Random seed
                  -> [(Scalar, Scalar)]
 genRandomOffsets samp rand = pair rands
     where

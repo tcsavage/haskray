@@ -1,4 +1,4 @@
-{-# LANGUAGE NamedFieldPuns, OverlappingInstances #-}
+{-# LANGUAGE NamedFieldPuns, OverlappingInstances, BangPatterns #-}
 
 module HaskRay
 (
@@ -51,10 +51,8 @@ import Data.List.Split (chunksOf)
 import Data.Maybe
 import Control.Applicative
 import Control.Monad
-import Control.Monad.Identity
 --import Control.Monad.Par hiding (get)
 --import qualified Control.Monad.Par as P
-import qualified Control.Monad.Parallel as MP
 import Control.Parallel
 import Control.Parallel.Strategies
 
@@ -77,38 +75,38 @@ import Control.Parallel.Strategies
 --    obs <- rpar $ mkObStruct os
 --    sampleRays <- rseq $ makeCameraRays settings view  -- [[Ray]]
 --    rseq obs
---    samplesM <- parList rpar $ map (traceSamples obs) sampleRays
+--    samplesM <- parList rpar $! map (traceSamples obs) sampleRays
 --    samples <- rseq $ sequence samplesM
 --    return (evalRender samples rand)
 --    where
---        mkArray ps = fromListVector (Z :. h :. w) ps
+--        mkArray !ps = fromListVector (Z :. h :. w) ps
 
 render :: Settings -> Scene -> Array V DIM2 Colour
 render settings@(Settings w h s rand gim) (Scene os view) = mkArray $ runEval $ do
     obs <- rpar $ mkObStruct os
     sampleRays <- rpar $ chunksOf w $ makeCameraRays settings view  -- [[Ray]]
-    rands <- rpar $ splitGen h rand
+    rands <- rpar $ splitGen (length sampleRays) rand
     pairs <- rseq $ zip sampleRays rands
-    samplesChunks <- parList rpar $ map (\(samples, rand') -> evalRender (mapM (traceSamples obs) samples) rand') pairs
-    return (concat samplesChunks)
+    samplesChunks <- parList rpar $ map (\(samples, rand') -> (evalRender $ mapM (traceSamples obs) samples) rand') pairs
+    return $! (concat samplesChunks)
     where
         mkArray ps = fromListVector (Z :. h :. w) ps
 
 -- Using monad Par
 --render :: Settings -> Scene -> Array V DIM2 Colour
---render settings@(Settings w h s rand gim) (Scene os view) = mkArray $ (flip evalRender rand) $ MP.sequence $ runPar $ do
+--render settings@(Settings w h s rand gim) (Scene os view) = mkArray $ (flip evalRender rand) $ sequence $ runPar $ do
 --    parMapChunk 8 (traceSamples obs) sampleRays
 --    where
 --        obs = mkObStruct os
 --        sampleRays = makeCameraRays settings view -- [[Ray]]
 --        mkArray ps = fromListVector (Z :. h :. w) ps
 
-splitGen :: Int -> StdGen -> [StdGen]
+splitGen :: Int -> PureMT -> [PureMT]
 splitGen 0 _ = []
-splitGen n rand = let (s1, s2) = split rand in s1 : splitGen (n-1) s2
+splitGen n rand = map pureMT $ take n $ randoms rand
 
 traceSamples :: ObjectStructure -> [Ray] -> Render Colour
-traceSamples objs rs = do
+traceSamples objs !rs = do
     colours <- mapM (fmap reflected . trace objs) rs
     return $ scale (1/(fromIntegral $ length rs)) (mconcat colours)
 
@@ -124,10 +122,10 @@ traceFun objs r = do
         Nothing -> return Nothing
         (Just (d, i@(Intersection {ipos}), mat)) -> do
             bsdfs <- forM lights $ \l -> do
-                --ldir <- randomSampleDir l ipos
-                let ldir = getOmega i l
+                ldir <- randomSampleDir l ipos
+                --let ldir = getOmega i l
                 evalMaterial mat (traceFun objs) i ldir
-            return $ Just (d, i, scale (1/(fromIntegral $ length lights)) `fmap` (mconcat bsdfs), isEmissive mat)
+            return $! Just (d, i, scale (1/(fromIntegral $ length lights)) `fmap` (mconcat bsdfs), isEmissive mat)
     where
         lights = filter emissiveShape $ getAll objs
         getOmega i light = normalize (center light `sub` ipos i) -- TODO: Needs to be random direction

@@ -50,4 +50,5 @@ mkSphereShape s m = Shape { intersect = intersect s m, center = center s, boundi
             let cosA = 1 - eps1 + (eps1 * cosAMax)
             let sinA = sqrt $ 1 - cosA * cosA
             let phi = 2 * pi * eps2
-            return $ normalize $ scale (cos phi * sinA) su `add` scale (sin phi * sinA) sv `add` scale cosA sw
+            return $ normalize $! scale (cos phi * sinA) su `add` scale (sin phi * sinA) sv `add` scale cosA sw
+            --return $ normalize (c `sub` pos) -- TEMPORARY

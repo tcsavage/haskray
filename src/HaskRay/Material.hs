@@ -40,6 +40,7 @@ import Data.Array.Repa.Repr.Vector
 import Data.Array.Repa.IO.BMP
 import Data.Word
 import System.Random
+import System.Random.Mersenne.Pure64
 
 -- | Type alias for RGB colours.
 type Colour = Vec3
@@ -106,7 +107,7 @@ holdout = mempty
 
 data Material a b = Material {
     isEmissive :: !Bool,
-    closure :: !(a -> (Ray -> Render (Maybe (Scalar, Intersection, BSDF Colour, Bool))) -> Intersection -> Vec3 -> StdGen -> (b, StdGen))
+    closure :: !(a -> (Ray -> Render (Maybe (Scalar, Intersection, BSDF Colour, Bool))) -> Intersection -> Vec3 -> PureMT -> (b, PureMT))
 }
 
 evalMaterial :: Material () (BSDF a) -> (Ray -> Render (Maybe (Scalar, Intersection, BSDF Colour, Bool))) -> Intersection -> Vec3 -> Render (BSDF a)
@@ -131,7 +132,7 @@ getInidentRay :: Material () Ray
 getInidentRay = Material False $ \() _ (Intersection {ipos}) om_i rand -> (Ray ipos om_i, rand)
 
 -- | Internal use only.
-getRand :: Material () StdGen
+getRand :: Material () PureMT
 getRand = Material False $ \() _ _ _ rand -> (rand, rand)
 
 randomRA :: Random r => Material (r, r) r

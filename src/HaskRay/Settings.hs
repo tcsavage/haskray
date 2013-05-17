@@ -7,6 +7,7 @@ Settings(..)
 ) where
 
 import System.Random
+import System.Random.Mersenne.Pure64
 
 -- | Settings structure for renderer.
-data Settings = Settings { width :: !Int, height :: !Int, samples :: !Int, randomSeed :: !StdGen, giMode :: !(Maybe Int) } deriving (Show)
+data Settings = Settings { width :: !Int, height :: !Int, samples :: !Int, randomSeed :: !PureMT, giMode :: !(Maybe Int) } deriving (Show)
