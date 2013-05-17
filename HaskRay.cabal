@@ -49,10 +49,10 @@ library
     HaskRay.Settings
     HaskRay.Vector
     HaskRay.Vector.Advanced
-  build-depends:       base ==4.5.*, bytestring, split >=0.2.0.0, parallel ==3.2.*, random, mtl, MonadRandom, containers, time, deepseq, monad-parallel, repa, repa-io <= 3.2.2.201204.1, bmp ==1.2.3.4, binary, monad-par
+  build-depends:       base ==4.5.*, bytestring, split >=0.2.0.0, parallel ==3.2.*, random, mersenne-random-pure64, transformers, MonadRandom, containers, time, deepseq, repa, repa-io <= 3.2.2.201204.1, bmp ==1.2.3.4, binary, monad-par
   hs-source-dirs:      src
   if flag(debug)
-    ghc-options:         -prof -fprof-auto
+    ghc-options:         -prof -fprof-auto -fforce-recomp
   else
     ghc-options:         -threaded -O2
 --    ghc-options:         -threaded -O2 -fwarn-type-defaults -fwarn-monomorphism-restriction -fwarn-incomplete-patterns -fwarn-overlapping-patterns -fwarn-unused-imports -fwarn-unused-binds -fwarn-missing-signatures
@@ -62,11 +62,11 @@ executable HaskRay
   if flag(buildfrontend)
     hs-source-dirs:      frontend
     if flag(debug)
-      ghc-options:         -prof -fprof-auto -rtsopts -with-rtsopts=-xc
+      ghc-options:         -prof -fprof-auto -rtsopts -with-rtsopts=-xc -fforce-recomp
     else
       ghc-options:         -threaded -eventlog -rtsopts -with-rtsopts=-N -O2 -fwarn-type-defaults -fwarn-monomorphism-restriction -fwarn-incomplete-patterns -fwarn-overlapping-patterns -fwarn-unused-imports -fwarn-unused-binds -fwarn-missing-signatures
     other-modules:       Settings
-    build-depends:       base ==4.5.*, HaskRay, random, binary
+    build-depends:       base ==4.5.*, HaskRay, random, mersenne-random-pure64, binary, time
   else
     buildable:           False
 
