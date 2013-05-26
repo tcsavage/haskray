@@ -15,11 +15,6 @@ Some of the improvements being investigated include:
 * Better memory usage and speed
 * Full Blender integration (tcsavage/haskray-blender)
 
-Prereqs
--------
-
-* [Awesomium 1.6.x](http://awesomium.com/) - Awesomium.framework required in working directory for OS X
-
 Install Flags
 -------------
 
