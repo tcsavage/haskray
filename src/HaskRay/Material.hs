@@ -27,8 +27,8 @@ import HaskRay.Vector
 import HaskRay.Ray
 import HaskRay.Monad
 
-import Control.Category
 import Control.Arrow
+import Control.Category
 import Prelude hiding (id, (.))
 import Control.Monad.Instances ()
 import Data.Maybe
@@ -86,65 +86,98 @@ indexTextureUV tex (Vector2 u v)
         u' = floor $ u * fromIntegral (w-1)
         v' = floor $ v * fromIntegral (h-1)
 
+----------------------------------
+-- HERE BEGINS THE MATERIAL SYSTEM
+----------------------------------
+
 -- | Records an intersection with geometry.
 data Intersection = Intersection { ipos :: !Vec3, inorm :: !Vec3, iray :: !Ray }
 
+{-|
+When perameterised over Colour, BSDFs are a record of the light reflected and transmitted from a specific point on a surface. They can however contain any other type so that more complicated computations can be performed on them.
+-}
 data BSDF a = BSDF { reflected :: !a, transmitted :: !a } deriving (Show, Read, Eq)
 
+{-
+BSDFs are a functor. The function is applied to the reflected pert and and transmitted part.
+-}
 instance Functor BSDF where
     fmap f (BSDF { reflected, transmitted }) = BSDF { reflected = f reflected, transmitted = f transmitted }
 
+{-
+BSDFs are also Applicatve functors. The function in each component is applied to it's matching component.
+-}
 instance Applicative BSDF where
     pure x = BSDF { reflected = x, transmitted = x }
     fs <*> xs = BSDF { reflected = reflected fs $ reflected xs, transmitted = transmitted fs $ transmitted xs }
 
+{-
+BSDFs form a Monoid under holdout and the addition of each component.
+-}
 instance (Vector v, Num c) => Monoid (BSDF (v c)) where
     mempty = BSDF { reflected = vzero, transmitted = vzero }
     BSDF ref1 trans1 `mappend` BSDF ref2 trans2 = BSDF { reflected = ref1 `add` ref2, transmitted = trans1 `add` trans2 }
 
+-- | The identity BSDF.
 holdout :: BSDF Colour
 holdout = mempty
 
+{-|
+Materials are a description of how to calculate a final BRDF for a given incident light vector. The 'Material' type is really a material function. Material functions can be composed to produce more complicated materials. In order to track which materials emit light, there is an 'isEmissive' flag which is maintained by the primitive functions and operators. This can be queried to find the set of emissive materials to use for lighting.
+
+A full material which can be assigned to a 'Shape' and used by the renderer must have type @Material () (BSDF Colour)@.
+-}
 data Material a b = Material {
     isEmissive :: !Bool,
-    closure :: !(a -> (Ray -> Render (Maybe (Scalar, Intersection, BSDF Colour, Bool))) -> Intersection -> Vec3 -> PureMT -> (b, PureMT))
+    closure :: a -> (Ray -> Render (Maybe (Scalar, Intersection, BSDF Colour, Bool))) -> Intersection -> Vec3 -> Render b
 }
 
+-- | A more constrained version of 'closure' which only accepts full materials, and returns an action on the 'Render' monad.
 evalMaterial :: Material () (BSDF a) -> (Ray -> Render (Maybe (Scalar, Intersection, BSDF Colour, Bool))) -> Intersection -> Vec3 -> Render (BSDF a)
-evalMaterial mat trace int om_i = do
-    rand <- get
-    let (result, rand') = closure mat () trace int om_i rand
-    put rand'
-    return result
+evalMaterial mat = closure mat ()
 
+{-
+Materials are Categories with an identity function which returns the input, and a composition operator which preserves the 'isEmissive' flag.
+-}
 instance Category Material where
-    id = Material False $ \inp _ _ _ rand -> (inp, rand)
-    Material im1 cl1 . Material im2 cl2 = Material (im1 || im2) $ \inp trace int om_i rand -> let (x1, rand') = cl2 inp trace int om_i rand in cl1 x1 trace int om_i rand'
+    id = Material False $ \inp _ _ _ -> return inp
+    Material im1 cl1 . Material im2 cl2 = Material (im1 || im2) $ \inp trace int om_i -> do
+        x1 <- cl2 inp trace int om_i 
+        cl1 x1 trace int om_i
 
+{-
+Materials are arrows. They cannot be monads because tracking the 'isEmissive' flag is beyond their capabilities.
+-}
 instance Arrow Material where
-    arr f = Material False $ \inp _ _ _ rand -> (f inp, rand)
-    first (Material im cl) = Material im $ \(x1, x2) trace int om_i rand -> let (r1, rand') = cl x1 trace int om_i rand in ((r1, x2), rand')
+    arr f = Material False $ \inp _ _ _ -> return $ f inp
+    first (Material im cl) = Material im $ \(x1, x2) trace int om_i -> do
+        r1 <- cl x1 trace int om_i
+        return (r1, x2)
 
+-- | A utility function which extracts the raw intersection value.
 getIntersection :: Material () Intersection
-getIntersection = Material False $ \() _ int _ rand -> (int, rand)
+getIntersection = Material False $ \() _ int _ -> return int
 
+-- | A utility function which calculates the incident light ray from the intersection data and the incident light vector.
 getInidentRay :: Material () Ray
-getInidentRay = Material False $ \() _ (Intersection {ipos}) om_i rand -> (Ray ipos om_i, rand)
+getInidentRay = Material False $ \() _ (Intersection {ipos}) om_i -> return $ Ray ipos om_i
 
--- | Internal use only.
-getRand :: Material () PureMT
-getRand = Material False $ \() _ _ _ rand -> (rand, rand)
+-- Internal use only. Get raw rendom generator.
+getRandA :: Material () PureMT
+getRandA = Material False $ \() _ _ _ -> getRand
 
+-- | Generate a random value within a specified range.
 randomRA :: Random r => Material (r, r) r
-randomRA = Material False $ \range _ _ _ rand -> randomR range rand
+randomRA = Material False $ \range _ _ _ -> getRandomR range
 
 
 -- Simple trace test.
 --traceA :: Material (Ray, Scalar) Bool
 --traceA = Material False $ \(ray, maxdist) trace _ _ rand -> (maybe False (\(dist,_,_,_) -> dist <= maxdist) $ trace ray, rand)
 
+-- | Access to the renderer trace function. Returns Nothing if no intersection, or returns Just a BSDF if there was (in which case a recursive call back into the material system is made).
 traceM :: Material Ray (Maybe (Scalar, Intersection, BSDF Colour, Bool))
-traceM = Material False $ \ray trace _ _ rand -> runRender (trace ray) rand
+traceM = Material False $ \ray trace _ _ -> trace ray
 
 -- Version of sequence for arrows. 
 sequenceArr :: Arrow a => [a b c] -> a b [c]
@@ -158,13 +191,14 @@ sequenceArr (x:xs) = proc input -> do
 mapArr :: Arrow a => (b -> a d c) -> [b] -> a d [c]
 mapArr f = sequenceArr . map f
 
+-- | Primitive material function.
 diffuse :: Material Colour (BSDF Colour)
 --diffuse = Material False $ \col _ (Intersection {inorm}) om_i -> holdout { reflected = col } -- Flat
 --diffuse = Material False $ \col _ (Intersection {inorm}) om_i -> holdout { reflected = fmap ((/2) . (+1)) inorm } -- Normal
 --diffuse = Material False $ \col _ (Intersection {inorm}) om_i -> holdout { reflected = scale (max 0 (om_i `dot` inorm)) col } -- Shaded
 diffuse = Material False fun
     where
-        fun col _ (Intersection {inorm}) om_i rand = (holdout { reflected = ref }, rand)
+        fun col _ (Intersection {inorm}) om_i = return $ holdout { reflected = ref }
             where
                 ref = scale (max 0 (om_i `dot` inorm)) col
 
@@ -199,10 +233,11 @@ doLighting pos om_i = do
         isReflectiveOrTransmissive _ = False
 -}
 
+-- | Primitive emissive material.
 emissive :: Material (Colour, Scalar) (BSDF Colour)
-emissive = Material True $ \(col, power) _ _ _ rand -> (holdout { reflected = power `scale` col }, rand)
+emissive = Material True $ \(col, power) _ _ _ -> return $ holdout { reflected = power `scale` col }
 
--- dir `sub` scale (2 * (norm `dot` dir)) norm
+-- | Primitive reflective material.
 mirror :: Material () (BSDF Colour)
 --mirror = Material False fun
 --    where
@@ -214,5 +249,6 @@ mirror = proc () -> do
     traced <- traceM -< Ray ipos $ (rdir iray) `sub` scale (2 * (inorm `dot` (rdir iray))) inorm
     returnA -< maybe holdout (\(_,_,bsdf,_) -> bsdf) traced
 
+-- | Primitive material function which adds two BSDFs together.
 addShader :: Material ((BSDF Colour), (BSDF Colour)) (BSDF Colour)
 addShader = arr $ \(s1, s2) -> s1 <> s2

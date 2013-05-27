@@ -47,6 +47,7 @@ import HaskRay.Ray
 import qualified Data.Array.Repa as R
 import Data.Array.Repa (Array, DIM2, Z(..), (:.)(..))
 import Data.Array.Repa.Repr.Vector
+import qualified Data.Foldable as F
 import Data.List.Split (chunksOf)
 import Data.Maybe
 import Control.Applicative
@@ -88,7 +89,7 @@ render settings@(Settings w h s rand gim) (Scene os view) = mkArray $ runEval $ 
     rands <- rpar $ splitGen (length sampleRays) rand
     pairs <- rseq $ zip sampleRays rands
     samplesChunks <- parList rpar $ map (\(samples, rand') -> (evalRender $ mapM (traceSamples obs) samples) rand') pairs
-    return $! (concat samplesChunks)
+    rseq (concat samplesChunks)
     where
         mkArray ps = fromListVector (Z :. h :. w) ps
 
@@ -101,9 +102,9 @@ render settings@(Settings w h s rand gim) (Scene os view) = mkArray $ runEval $ 
 --        sampleRays = makeCameraRays settings view -- [[Ray]]
 --        mkArray ps = fromListVector (Z :. h :. w) ps
 
-splitGen :: Int -> PureMT -> [PureMT]
+splitGen :: Int -> PureMT -> [RState]
 splitGen 0 _ = []
-splitGen n rand = map pureMT $ take n $ randoms rand
+splitGen n rand = map (\r -> RState (pureMT r) 5) $ take n $ randoms rand
 
 traceSamples :: ObjectStructure -> [Ray] -> Render Colour
 traceSamples objs !rs = do
@@ -125,7 +126,34 @@ traceFun objs r = do
                 ldir <- randomSampleDir l ipos
                 --let ldir = getOmega i l
                 evalMaterial mat (traceFun objs) i ldir
-            return $! Just (d, i, scale (1/(fromIntegral $ length lights)) `fmap` (mconcat bsdfs), isEmissive mat)
+            let direct = mconcat bsdfs
+            --gi <- getGI objs i (reflected direct)
+            return $! Just (d, i, scale (1/(fromIntegral $ length lights)) `fmap` (direct), isEmissive mat)
     where
         lights = filter emissiveShape $ getAll objs
         getOmega i light = normalize (center light `sub` ipos i) -- TODO: Needs to be random direction
+
+getGI :: ObjectStructure -> Intersection -> Colour -> Render (BSDF Colour)
+getGI objs i@(Intersection {ipos, inorm}) direct
+    | maxComponent > 0 = do
+        r <- getRandomR (0, 1)
+        case r > maxComponent of
+            True -> do
+                ray <- getRandomRay i
+                gi <- trace objs ray
+                return $ BSDF (scale 0.5) (const vzero) <*> gi
+            False -> return holdout
+    | otherwise = return holdout
+    where
+        maxComponent = F.foldr max 0 direct
+
+
+-- | Render action to generate a random direction (for global illumination sample).
+getRandomRay :: Intersection -> Render Ray
+getRandomRay (Intersection {ipos, inorm}) = do
+    r1 <- fmap (2*pi*) $ getRandomR (0, 1)
+    r2 <- fmap sqrt $ getRandomR (0, 1)
+    let u = normalize $ cross (if abs (x3 inorm) > 0.1 then Vector3 0 1 0 else Vector3 1 0 0) inorm
+    let v = cross inorm u
+    let d = normalize (scale (cos r1 * r2) u `add` scale (sin r1 *r2) v `add` scale (sqrt $ 1-r2) inorm)
+    return $! Ray ipos d
