@@ -1,7 +1,7 @@
 HaskRay
 =======
 
-Path tracing ray tracer implemented in Haskell.
+Path tracing* ray tracer implemented in Haskell. (*May or may not support path tracing at this time)
 
 Experimental Branch
 -------------------
@@ -14,9 +14,9 @@ Some of the improvements being investigated include:
 * Improved parallism
 * Better memory usage and speed
 * Full Blender integration (tcsavage/haskray-blender)
+* Get path tracing working well enough to be usable
 
 Install Flags
 -------------
 
 * buildfrontend
-* glview
