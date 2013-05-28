@@ -192,15 +192,22 @@ mapArr :: Arrow a => (b -> a d c) -> [b] -> a d [c]
 mapArr f = sequenceArr . map f
 
 -- | Primitive material function.
-diffuse :: Material Colour (BSDF Colour)
---diffuse = Material False $ \col _ (Intersection {inorm}) om_i -> holdout { reflected = col } -- Flat
---diffuse = Material False $ \col _ (Intersection {inorm}) om_i -> holdout { reflected = fmap ((/2) . (+1)) inorm } -- Normal
---diffuse = Material False $ \col _ (Intersection {inorm}) om_i -> holdout { reflected = scale (max 0 (om_i `dot` inorm)) col } -- Shaded
-diffuse = Material False fun
+diffuseShading :: Material Colour (BSDF Colour)
+--diffuseShading = Material False $ \col _ (Intersection {inorm}) om_i -> holdout { reflected = col } -- Flat
+--diffuseShading = Material False $ \col _ (Intersection {inorm}) om_i -> holdout { reflected = fmap ((/2) . (+1)) inorm } -- Normal
+--diffuseShading = Material False $ \col _ (Intersection {inorm}) om_i -> holdout { reflected = scale (max 0 (om_i `dot` inorm)) col } -- Shaded
+diffuseShading = Material False fun
     where
         fun col _ (Intersection {inorm}) om_i = return $ holdout { reflected = ref }
             where
                 ref = scale (max 0 (om_i `dot` inorm)) col
+
+-- Do shadowing.
+diffuse :: Material Colour (BSDF Colour)
+diffuse = proc col -> do
+    out <- diffuseShading -< col                                              -- Get diffuse shading
+    shad <- traceM <<< getInidentRay -< ()                                    -- Test path to light
+    returnA -< maybe holdout (\(_,_,_,e) -> if e then out else holdout) shad  -- Set BSDF to black if in shadow
 
 {-
 doLighting :: (Ray -> Maybe (Scalar, Intersection, BSDF Colour, Bool)) -> Vec3 -> Vec3 -> Render Scalar

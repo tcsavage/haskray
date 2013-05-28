@@ -104,7 +104,7 @@ render settings@(Settings w h s rand gim) (Scene os view) = mkArray $ runEval $ 
 
 splitGen :: Int -> PureMT -> [RState]
 splitGen 0 _ = []
-splitGen n rand = map (\r -> RState (pureMT r) 5) $ take n $ randoms rand
+splitGen n rand = map (\r -> RState (pureMT r) 1) $ take n $ randoms rand
 
 traceSamples :: ObjectStructure -> [Ray] -> Render Colour
 traceSamples objs !rs = do
@@ -118,7 +118,6 @@ trace objs ray = do
 
 traceFun :: ObjectStructure -> Ray -> Render (Maybe (Scalar, Intersection, BSDF Colour, Bool))
 traceFun objs r = do
-    rand <- get
     case closestIntersectObStruct objs r of 
         Nothing -> return Nothing
         (Just (d, i@(Intersection {ipos}), mat)) -> do
@@ -127,7 +126,7 @@ traceFun objs r = do
                 --let ldir = getOmega i l
                 evalMaterial mat (traceFun objs) i ldir
             let direct = mconcat bsdfs
-            --gi <- getGI objs i (reflected direct)
+            --gi <- withReducedDepth (return holdout) $ getGI objs i (reflected direct)
             return $! Just (d, i, scale (1/(fromIntegral $ length lights)) `fmap` (direct), isEmissive mat)
     where
         lights = filter emissiveShape $ getAll objs
@@ -135,17 +134,18 @@ traceFun objs r = do
 
 getGI :: ObjectStructure -> Intersection -> Colour -> Render (BSDF Colour)
 getGI objs i@(Intersection {ipos, inorm}) direct
-    | maxComponent > 0 = do
+    | True || maxComponent > 0 = do
         r <- getRandomR (0, 1)
         case r > maxComponent of
             True -> do
                 ray <- getRandomRay i
                 gi <- trace objs ray
-                return $ BSDF (scale 0.5) (const vzero) <*> gi
-            False -> return holdout
-    | otherwise = return holdout
+                return $ BSDF (scale 0.2) (const vzero) <*> gi
+            False -> return identity
+    | otherwise = return identity
     where
         maxComponent = F.foldr max 0 direct
+        identity = pure $ pure 1
 
 
 -- | Render action to generate a random direction (for global illumination sample).

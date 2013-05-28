@@ -20,9 +20,7 @@ import Settings
 -- Do shadowing.
 diffuseM :: Colour -> Material () (BSDF Colour)
 diffuseM col = proc () -> do
-    out <- diffuse -< col                                                     -- Get diffuse shading
-    shad <- traceM <<< getInidentRay -< ()                                    -- Test path to light
-    returnA -< maybe holdout (\(_,_,_,e) -> if e then out else holdout) shad  -- Set BSDF to black if in shadow
+    diffuse -< col
 
 emissiveM :: Material () (BSDF Colour)
 emissiveM = proc () -> do
@@ -36,7 +34,6 @@ objects tex = [mkPlaneShape (Plane (normalize (Vector3 0 (-1) 0)) 5) (diffuseM (
         ,mkPlaneShape (Plane (normalize (Vector3 (-1) 0 0)) (14)) (diffuseM (Vector3 0 0.8 0))
         ,mkPlaneShape (Plane (normalize (Vector3 0 0 (-1))) (18)) (diffuseM (Vector3 0.8 0.8 0.8))
         --,mkSphereShape (Sphere (Vector3 1 1 1) 3) (Transmissive 1.05 0.9)
-        ,mkSphereShape (Sphere (Vector3 1 (-5) 8) 3) (diffuseM (Vector3 0 0 1))
         --,mkSphereShape (Sphere (Vector3 5 1 10) 4) mirror
         ,mkSphereShape (Sphere (Vector3 (-8) 0 8) 5) (diffuseM (Vector3 0 1 0))
         --,mkSphereShape (Sphere (Vector3 (-8) 0 8) 5) (Shaded $ Textured tex)

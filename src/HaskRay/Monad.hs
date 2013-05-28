@@ -4,14 +4,11 @@ module HaskRay.Monad
 (RState(..)
 ,Render
 ,getRand
-,setRand
-,getDepth
-,setDepth
+,withReducedDepth
 ,evalRender
 ,runRender
 ,getRandomR
 ,liftRand
-,module Control.Monad.Trans.State
 ,module System.Random
 ,module System.Random.Mersenne.Pure64
 ) where
@@ -32,17 +29,35 @@ type Render a = State RState a
 
 instance NFData (Render a) where
 
+-- | Get the raw random generator.
 getRand :: Render PureMT
 getRand = rand <$> get
 
+-- | Set the random generator. Internal only.
 setRand :: PureMT -> Render ()
 setRand rand' = modify $ \state -> state { rand = rand' }
 
+-- Internal.
 getDepth :: Render Int
 getDepth = depth <$> get
 
+-- Internal.
 setDepth :: Int -> Render ()
 setDepth depth' = modify $ \state -> state { depth = depth' }
+
+-- | Perform an action one level down in depth - with a default if already at max depth.
+withReducedDepth :: Render a -- ^ Default action
+                 -> Render a -- ^ Action to perform at d-1
+                 -> Render a
+withReducedDepth def action = do
+	d <- getDepth
+	case d > 0 of
+		True -> do
+			setDepth (d-1)
+			out <- action
+			setDepth d
+			return out
+		False -> def
 
 -- | Run Render monad.
 evalRender :: Render a -> RState -> a
@@ -60,5 +75,6 @@ liftRand f = do
     return result
 
 -- | Random actions.
-getRandomR :: (Random a) => (a, a) -> Render a
+getRandomR :: (Random a) => (a, a) -- ^ Range of result
+                         -> Render a
 getRandomR = liftRand . randomR
