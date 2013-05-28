@@ -9,6 +9,7 @@ makeForeignPtr
 import HaskRay.Vector
 import HaskRay.Material
 
+import Control.Exception (catch, IOException)
 import qualified Data.Array.Repa as R
 import Data.Array.Repa (Array, D, Z(..), DIM2, DIM3, (:.)(..))
 import Data.Array.Repa.Repr.ForeignPtr
@@ -17,12 +18,12 @@ import Data.Array.Repa.IO.BMP
 import Data.Word (Word8)
 import Foreign.C.Types
 import Foreign.ForeignPtr.Safe
-import System.IO.Error (catch)
 
 -- | Save an array of 'Colour' to BMP file. Uses repa-io.
 saveBMP :: Array V DIM2 Colour -> FilePath -> IO ()
 saveBMP carr path = catch (R.computeP arr >>= writeImageToBMP path) $ \err -> do
-    putStrLn "HaskRay.Out.saveBMP: Failed to save BMP file."
+    putStrLn "HaskRay.Out.saveBMP: Failed to save BMP file:"
+    print (err :: IOException)
     where
         arr :: Array D DIM2 (Word8, Word8, Word8)
         arr = R.backpermute shape flop $ R.map (toTriple . fmap (floatingToByte . gammaCorrect)) carr
