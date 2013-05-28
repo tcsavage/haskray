@@ -1,4 +1,4 @@
-{-# LANGUAGE Arrows, NamedFieldPuns, KindSignatures, FlexibleInstances, OverlappingInstances #-}
+{-# LANGUAGE Arrows, NamedFieldPuns, FlexibleInstances, OverlappingInstances #-}
 
 module HaskRay.Material
 (
@@ -16,7 +16,7 @@ indexTextureUV,
 diffuse,
 emissive,
 mirror,
-getInidentRay,
+getIncidentRay,
 traceM,
 holdout,
 sequenceArr,
@@ -159,8 +159,8 @@ getIntersection :: Material () Intersection
 getIntersection = Material False $ \() _ int _ -> return int
 
 -- | A utility function which calculates the incident light ray from the intersection data and the incident light vector.
-getInidentRay :: Material () Ray
-getInidentRay = Material False $ \() _ (Intersection {ipos}) om_i -> return $ Ray ipos om_i
+getIncidentRay :: Material () Ray
+getIncidentRay = Material False $ \() _ (Intersection {ipos}) om_i -> return $ Ray ipos om_i
 
 -- Internal use only. Get raw rendom generator.
 getRandA :: Material () PureMT
@@ -191,7 +191,7 @@ sequenceArr (x:xs) = proc input -> do
 mapArr :: Arrow a => (b -> a d c) -> [b] -> a d [c]
 mapArr f = sequenceArr . map f
 
--- | Primitive material function.
+-- Simple diffuse shading without shadows.
 diffuseShading :: Material Colour (BSDF Colour)
 --diffuseShading = Material False $ \col _ (Intersection {inorm}) om_i -> holdout { reflected = col } -- Flat
 --diffuseShading = Material False $ \col _ (Intersection {inorm}) om_i -> holdout { reflected = fmap ((/2) . (+1)) inorm } -- Normal
@@ -202,7 +202,7 @@ diffuseShading = Material False fun
             where
                 ref = scale (max 0 (om_i `dot` inorm)) col
 
--- Do shadowing.
+-- | Primitive material function.
 diffuse :: Material Colour (BSDF Colour)
 diffuse = proc col -> do
     out <- diffuseShading -< col                                              -- Get diffuse shading
@@ -253,9 +253,9 @@ mirror :: Material () (BSDF Colour)
 --            return bsdf
 mirror = proc () -> do
     (Intersection {ipos, inorm, iray}) <- getIntersection -< ()
-    traced <- traceM -< Ray ipos $ (rdir iray) `sub` scale (2 * (inorm `dot` (rdir iray))) inorm
+    traced <- traceM -< Ray ipos $ rdir iray `sub` scale (2 * (inorm `dot` rdir iray)) inorm
     returnA -< maybe holdout (\(_,_,bsdf,_) -> bsdf) traced
 
 -- | Primitive material function which adds two BSDFs together.
-addShader :: Material ((BSDF Colour), (BSDF Colour)) (BSDF Colour)
-addShader = arr $ \(s1, s2) -> s1 <> s2
+addShader :: Material (BSDF Colour, BSDF Colour) (BSDF Colour)
+addShader = arr $ uncurry (<>)

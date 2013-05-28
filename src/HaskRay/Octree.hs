@@ -50,7 +50,7 @@ maxDepth = 3
 mkObStruct :: [Shape] -> ObjectStructure
 mkObStruct obs = (inf, mkOctree fin, obs)
     where
-        (inf, fin) = partition (\s -> boundingBox s == Nothing) obs
+        (inf, fin) = partition (\s -> isNothing $ boundingBox s) obs
 
 -- | Build an octree from a list of Objects.
 mkOctree :: [Shape] -> Octree
@@ -113,7 +113,7 @@ bbFromBranch pos size = BoundingBox (pos `add` dif) (pos `add` neg dif)
 
 -- | Sort objects into octree membership groups.
 sortObjects :: [Shape] -> Vec3 -> Scalar -> [Shape]
-sortObjects os pos size = filter (intersectBoxes (bbFromBranch pos size) . fromJust . boundingBox) $ filter (\s -> boundingBox s /= Nothing) os
+sortObjects os pos size = filter (intersectBoxes (bbFromBranch pos size) . fromJust . boundingBox) $ filter (\s -> isJust $ boundingBox s) os
 
 -- | Get all objects from sectors the ray passes through.
 filterObsByIntersection :: Octree -> Ray -> [Shape]

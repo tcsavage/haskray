@@ -14,7 +14,7 @@ import HaskRay.Ray
 import HaskRay.Monad
 
 import Control.Monad (join)
-import Data.Maybe (catMaybes)
+import Data.Maybe (catMaybes, mapMaybe)
 import Data.List (minimumBy)
 
 -- | Something renderable.
@@ -36,13 +36,13 @@ data Shape = Shape {
 -- | Find closest intersection with a list of 'Object's.
 closestIntersect :: [Shape] -> Ray -> Maybe (Scalar, Intersection, Material () (BSDF Colour))
 closestIntersect [] _ = Nothing
-closestIntersect shapes r = closestIntersection $ catMaybes $ map (\s -> intersect s r) shapes
+closestIntersect shapes r = closestIntersection $ mapMaybe (`intersect` r) shapes
 
 -- | Get the bounding box of several shapes.
 boundShapes :: [Shape] -> BoundingBox
 boundShapes os = BoundingBox ev1 ev2
     where
-        bbs = join $ catMaybes $ map (fmap boundingPoints . boundingBox) os
+        bbs = join $ mapMaybe (fmap boundingPoints . boundingBox) os
         boundingPoints (BoundingBox v1 v2) = [v1, v2]
         (ev1, ev2) = minmaxPoints bbs
 

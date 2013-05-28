@@ -17,6 +17,16 @@ import Data.Time.Clock
 
 import Settings
 
+data MaterialDSL = Holdout
+                 | Diffuse !Colour
+                 | Emissive
+                 deriving (Show, Read, Eq)
+
+translateDSL :: MaterialDSL -> Material () (BSDF Colour)
+translateDSL Holdout = arr $ \ () -> holdout
+translateDSL (Diffuse col) = diffuseM col
+translateDSL Emissive = emissiveM
+
 -- Do shadowing.
 diffuseM :: Colour -> Material () (BSDF Colour)
 diffuseM col = proc () -> do

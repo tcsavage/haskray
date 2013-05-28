@@ -91,7 +91,7 @@ render settings@(Settings w h s rand gim) (Scene os view) = mkArray $ runEval $ 
     samplesChunks <- parList rpar $ map (\(samples, rand') -> (evalRender $ mapM (traceSamples obs) samples) rand') pairs
     rseq (concat samplesChunks)
     where
-        mkArray ps = fromListVector (Z :. h :. w) ps
+        mkArray = fromListVector (Z :. h :. w)
 
 -- Using monad Par
 --render :: Settings -> Scene -> Array V DIM2 Colour
@@ -109,7 +109,7 @@ splitGen n rand = map (\r -> RState (pureMT r) 1) $ take n $ randoms rand
 traceSamples :: ObjectStructure -> [Ray] -> Render Colour
 traceSamples objs !rs = do
     colours <- mapM (fmap reflected . trace objs) rs
-    return $ scale (1/(fromIntegral $ length rs)) (mconcat colours)
+    return $ scale (1/fromIntegral (length rs)) (mconcat colours)
 
 trace :: ObjectStructure -> Ray -> Render (BSDF Colour)
 trace objs ray = do
@@ -127,7 +127,7 @@ traceFun objs r = do
                 evalMaterial mat (traceFun objs) i ldir
             let direct = mconcat bsdfs
             --gi <- withReducedDepth (return holdout) $ getGI objs i (reflected direct)
-            return $! Just (d, i, scale (1/(fromIntegral $ length lights)) `fmap` (direct), isEmissive mat)
+            return $! Just (d, i, scale (1/fromIntegral (length lights)) `fmap` (direct), isEmissive mat)
     where
         lights = filter emissiveShape $ getAll objs
         getOmega i light = normalize (center light `sub` ipos i) -- TODO: Needs to be random direction
