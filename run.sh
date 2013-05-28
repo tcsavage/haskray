@@ -1,4 +1,4 @@
 #! /bin/sh
 
-./cabal-dev/bin/HaskRay +RTS -RTS $@
+./cabal-dev/bin/haskray +RTS -RTS $@
 #display test.ppm &
