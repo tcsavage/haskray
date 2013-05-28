@@ -13,7 +13,7 @@ loadTexture,
 diffuse,
 emissive,
 mirror,
-getInidentRay,
+getIncidentRay,
 traceM,
 holdout,
 -- * Geometry

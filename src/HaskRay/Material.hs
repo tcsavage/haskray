@@ -206,7 +206,7 @@ diffuseShading = Material False fun
 diffuse :: Material Colour (BSDF Colour)
 diffuse = proc col -> do
     out <- diffuseShading -< col                                              -- Get diffuse shading
-    shad <- traceM <<< getInidentRay -< ()                                    -- Test path to light
+    shad <- traceM <<< getIncidentRay -< ()                                   -- Test path to light
     returnA -< maybe holdout (\(_,_,_,e) -> if e then out else holdout) shad  -- Set BSDF to black if in shadow
 
 {-
