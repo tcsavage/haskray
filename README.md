@@ -15,8 +15,3 @@ Some of the improvements being investigated include:
 * Better memory usage and speed
 * Full Blender integration (tcsavage/haskray-blender)
 * Get path tracing working well enough to be usable
-
-Install Flags
--------------
-
-* buildfrontend
