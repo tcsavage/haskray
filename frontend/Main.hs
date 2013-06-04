@@ -86,7 +86,7 @@ main = do
     randomSeed <- newPureMT
     let settings = readArgs opts
     let rsettings = fromJust $ fromSettingList randomSeed $ readArgs opts
-    tex <- loadTexture "tex-spheremap.bmp"
+    tex <- loadTexture "textures/tex-spheremap.bmp"
     let scene = Scene (testObjects tex) testCamera
     case getFilePath settings of
         Just filepath -> do
