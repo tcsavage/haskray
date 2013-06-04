@@ -23,14 +23,20 @@ translateDSL Holdout = arr $ \ () -> holdout
 translateDSL (Diffuse col) = diffuseM col
 translateDSL Emissive = emissiveM
 
+makeFunction :: Material a b -> a -> Material () b
+makeFunction m x = proc () -> do
+    m -< x
+
 diffuseM :: Colour -> Material () (BSDF Colour)
-diffuseM col = proc () -> do
-    diffuse -< col
+diffuseM = makeFunction diffuse
 
 emissiveM :: Material () (BSDF Colour)
 emissiveM = proc () -> do
     out <- emissive -< (Vector3 1 1 1, 100)
     returnA -< out
+
+showNormalM :: Material () (BSDF Colour)
+showNormalM = makeFunction showNormal ()
 
 testObjects :: Texture -> [Shape]
 testObjects tex = [mkPlaneShape (Plane (normalize (Vector3 0 (-1) 0)) 5) (diffuseM (Vector3 0.8 0.8 0.8))
