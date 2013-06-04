@@ -1,22 +1,18 @@
 {-# LANGUAGE CPP, OverloadedStrings, Arrows #-}
 
-module Main where
+module Main (main) where
 
 import HaskRay
 import System.Environment
-import System.Random
 import System.Random.Mersenne.Pure64
 import Data.Char
 import Data.Maybe
-import System.IO
-import Control.Monad
 import Control.Arrow
-import Text.Printf
-import Data.Binary
 import Data.Time.Clock
 
 import Settings
 
+-- Exploring a serialisable DSL for materials and scenes.
 data MaterialDSL = Holdout
                  | Diffuse !Colour
                  | Emissive
@@ -27,7 +23,6 @@ translateDSL Holdout = arr $ \ () -> holdout
 translateDSL (Diffuse col) = diffuseM col
 translateDSL Emissive = emissiveM
 
--- Do shadowing.
 diffuseM :: Colour -> Material () (BSDF Colour)
 diffuseM col = proc () -> do
     diffuse -< col
