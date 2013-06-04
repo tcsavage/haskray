@@ -32,8 +32,8 @@ emissiveM = proc () -> do
     out <- emissive -< (Vector3 1 1 1, 100)
     returnA -< out
 
-objects :: Texture -> [Shape]
-objects tex = [mkPlaneShape (Plane (normalize (Vector3 0 (-1) 0)) 5) (diffuseM (Vector3 0.8 0.8 0.8))
+testObjects :: Texture -> [Shape]
+testObjects tex = [mkPlaneShape (Plane (normalize (Vector3 0 (-1) 0)) 5) (diffuseM (Vector3 0.8 0.8 0.8))
         ,mkPlaneShape (Plane (normalize (Vector3 0 (1) 0)) 18) (diffuseM (Vector3 0.8 0.8 0.8))
         ,mkPlaneShape (Plane (normalize (Vector3 1 0 0)) (14)) (diffuseM (Vector3 0.8 0 0))
         ,mkPlaneShape (Plane (normalize (Vector3 (-1) 0 0)) (14)) (diffuseM (Vector3 0 0.8 0))
@@ -47,8 +47,8 @@ objects tex = [mkPlaneShape (Plane (normalize (Vector3 0 (-1) 0)) 5) (diffuseM (
         --,mkSphereShape (Sphere (Vector3 (-8) (-15) (0)) 0.5) emissiveM
         ]
 
-camera :: View
-camera = View
+testCamera :: View
+testCamera = View
     {position = (Vector3 0 (-10) (-80))
     ,lookAt = (Vector3 0 (-5) 10)
     ,upVec = (Vector3 0 (-1) 0)
@@ -72,12 +72,13 @@ readArgs ("-i":fp:xs) = InputFile fp : readArgs xs
 readArgs ("-o":fp:xs) = OutputFile fp : readArgs xs
 readArgs args = error ("Unrecognised arguments: " ++ show args)
 
-time :: IO () -> IO ()
-time action = do
+timeAction :: IO a -> IO a
+timeAction action = do
     t1 <- getCurrentTime
-    action
+    r <- action
     t2 <- getCurrentTime
     print $ diffUTCTime t2 t1
+    return r
 
 main :: IO ()
 main = do
@@ -86,11 +87,11 @@ main = do
     let settings = readArgs opts
     let rsettings = fromJust $ fromSettingList randomSeed $ readArgs opts
     tex <- loadTexture "tex-spheremap.bmp"
-    let scene = Scene (objects tex) camera
+    let scene = Scene (testObjects tex) testCamera
     case getFilePath settings of
         Just filepath -> do
             putStrLn $ "Rendering (seed: " ++ (show randomSeed) ++ ")..."
-            time $ do
+            timeAction $ do
                 let pbuf = render rsettings scene
                 saveBMP pbuf filepath
         otherwise -> error "No output file given"
