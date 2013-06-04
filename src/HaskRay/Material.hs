@@ -16,6 +16,8 @@ indexTextureUV,
 diffuse,
 emissive,
 mirror,
+shadeless,
+showNormal,
 getIncidentRay,
 traceM,
 holdout,
@@ -94,7 +96,7 @@ indexTextureUV tex (Vector2 u v)
 data Intersection = Intersection { ipos :: !Vec3, inorm :: !Vec3, iray :: !Ray }
 
 {-|
-When perameterised over Colour, BSDFs are a record of the light reflected and transmitted from a specific point on a surface. They can however contain any other type so that more complicated computations can be performed on them.
+When perameterised over 'Colour', BSDFs are a record of the light reflected and transmitted from a specific point on a surface. They can however contain any other type so that more complicated computations can be performed on them.
 -}
 data BSDF a = BSDF { reflected :: !a, transmitted :: !a } deriving (Show, Read, Eq)
 
@@ -191,54 +193,31 @@ sequenceArr (x:xs) = proc input -> do
 mapArr :: Arrow a => (b -> a d c) -> [b] -> a d [c]
 mapArr f = sequenceArr . map f
 
+-- | Simple material which renders a flat colour without shading or shadows.
+shadeless :: Material Colour (BSDF Colour)
+shadeless = arr $ \col -> holdout { reflected = col }
+
+-- | Displays colour representation of surface normal.
+showNormal :: Material () (BSDF Colour)
+showNormal = proc _ -> do
+    i <- getIntersection -< ()
+    returnA -< holdout { reflected = fmap ((/2) . (+1)) (inorm i) }
+
+
 -- Simple diffuse shading without shadows.
 diffuseShading :: Material Colour (BSDF Colour)
---diffuseShading = Material False $ \col _ (Intersection {inorm}) om_i -> holdout { reflected = col } -- Flat
---diffuseShading = Material False $ \col _ (Intersection {inorm}) om_i -> holdout { reflected = fmap ((/2) . (+1)) inorm } -- Normal
---diffuseShading = Material False $ \col _ (Intersection {inorm}) om_i -> holdout { reflected = scale (max 0 (om_i `dot` inorm)) col } -- Shaded
 diffuseShading = Material False fun
     where
         fun col _ (Intersection {inorm}) om_i = return $ holdout { reflected = ref }
             where
                 ref = scale (max 0 (om_i `dot` inorm)) col
 
--- | Primitive material function.
+-- | Primitive material which renders a colour with shading and shadows.
 diffuse :: Material Colour (BSDF Colour)
 diffuse = proc col -> do
     out <- diffuseShading -< col                                              -- Get diffuse shading
     shad <- traceM <<< getIncidentRay -< ()                                   -- Test path to light
     returnA -< maybe holdout (\(_,_,_,e) -> if e then out else holdout) shad  -- Set BSDF to black if in shadow
-
-{-
-doLighting :: (Ray -> Maybe (Scalar, Intersection, BSDF Colour, Bool)) -> Vec3 -> Vec3 -> Render Scalar
-doLighting pos om_i = do
-    (obs, _) <- ask
-    eps1 <- getRandomR (0, 1)
-    eps2 <- getRandomR (0, 1)
-    let sphere = fromMaybe (error "HaskRay.RayTree.Light.doLighting: Emissive surface not sphere.") $ cast ls
-    let (Sphere center radius) = sphere
-    let sw = center `sub` x
-    let su = normalize (if abs (x3 sw) > 1 then Vector3 0 1 0 else Vector3 1 0 0)
-    let sv = sw `cross` su
-    let cosAMax = sqrt (1 - radius * radius / ((x `sub` center) `dot` (x `sub` center)))
-    let cosA = 1 - eps1 + (eps1 * cosAMax)
-    let sinA = sqrt $ 1 - cosA * cosA
-    let phi = 2 * pi * eps2
-    let l = normalize $ scale (cos phi * sinA) su `add` scale (sin phi * sinA) sv `add` scale cosA sw
-    let ray = Ray x l
-    let closestOb = closestIntersectObStruct ray obs
-    --let getOb (Just (_,_,o)) = o
-    --let closestObIsLight = if isNothing closestOb then True else (if (getOb closestOb) == light then True else False)
-    let closestObIsLight = fromMaybe True $ closestOb >>= (\(_,_,o) -> Just $ o == light)
-    let omega = 2*pi*(1-cosAMax)
-    let fact = empow * (l `dot` norm) * omega
-    return $ if closestObIsLight then clamp fact else 0
-    where
-        clamp fac = if fac < 0 then 0 else fac
-        isReflectiveOrTransmissive (_, Intersection _ _ _ Reflective, _) = True
-        isReflectiveOrTransmissive (_, Intersection _ _ _ (Transmissive _ _), _) = True
-        isReflectiveOrTransmissive _ = False
--}
 
 -- | Primitive emissive material.
 emissive :: Material (Colour, Scalar) (BSDF Colour)
@@ -246,11 +225,6 @@ emissive = Material True $ \(col, power) _ _ _ -> return $ holdout { reflected =
 
 -- | Primitive reflective material.
 mirror :: Material () (BSDF Colour)
---mirror = Material False fun
---    where
---        fun () trace (Intersection {ipos, inorm, iray}) _ rand = (flip (,) rand) . fromMaybe holdout $ do
---            (_, _, bsdf,_) <- trace $ Ray ipos $ (rdir iray) `sub` scale (2 * (inorm `dot` (rdir iray))) inorm
---            return bsdf
 mirror = proc () -> do
     (Intersection {ipos, inorm, iray}) <- getIntersection -< ()
     traced <- traceM -< Ray ipos $ rdir iray `sub` scale (2 * (inorm `dot` rdir iray)) inorm

@@ -1,9 +1,17 @@
 {-# LANGUAGE NamedFieldPuns, OverlappingInstances, BangPatterns #-}
 
+{-|
+This module exports the high-level types and functions required to create front-end components like file I/O, user interfaces, materials and shapes. A selection of basic shapes and materials are included here. The geometry, material and vector modules are also exported individually.
+-}
+
 module HaskRay
 (
--- * Vectors
-module HaskRay.Vector,
+-- * High-level Operations
+render,
+-- * Settings
+module HaskRay.Settings,
+-- * Geometry
+module HaskRay.Geometry,
 -- * Material
 Colour,
 Material(..),
@@ -16,21 +24,14 @@ mirror,
 getIncidentRay,
 traceM,
 holdout,
--- * Geometry
-module HaskRay.Geometry,
--- * Octree
-module HaskRay.Octree,
--- * Projection
-View(..),
--- * Settings
-module HaskRay.Settings,
+-- * Vectors
+module HaskRay.Vector,
 -- * Image Ouput
 saveBMP,
 makeForeignPtr,
--- * High-level Operations
-render,
 -- * Scene
-module HaskRay.Scene,
+Scene(..),
+View(..)
 ) where
 
 import HaskRay.Vector
@@ -52,36 +53,10 @@ import Data.List.Split (chunksOf)
 import Data.Maybe
 import Control.Applicative
 import Control.Monad
---import Control.Monad.Par hiding (get)
---import qualified Control.Monad.Par as P
 import Control.Parallel
 import Control.Parallel.Strategies
 
---parMapChunk :: NFData b => Int -> (a -> b) -> [a] -> Par [b]
---parMapChunk n f xs = do
---    xss <- parMap (map f) (chunksOf n xs)
---    return (concat xss)
-
--- | Render a scene with given settings.
---render :: Settings -> Scene -> Array V DIM2 Colour
---render settings@(Settings w h s rand gim) (Scene os view) = mkArray (evalRender (mapM (traceSamples obs) sampleRays) rand)
---    where
---        obs = mkObStruct os
---        sampleRays = makeCameraRays settings view -- [[Ray]]
---        mkArray ps = fromListVector (Z :. h :. w) ps
-
--- Using monad Eval
---render :: Settings -> Scene -> Array V DIM2 Colour
---render settings@(Settings w h s rand gim) (Scene os view) = mkArray $ runEval $ do
---    obs <- rpar $ mkObStruct os
---    sampleRays <- rseq $ makeCameraRays settings view  -- [[Ray]]
---    rseq obs
---    samplesM <- parList rpar $! map (traceSamples obs) sampleRays
---    samples <- rseq $ sequence samplesM
---    return (evalRender samples rand)
---    where
---        mkArray !ps = fromListVector (Z :. h :. w) ps
-
+-- | Given some parameter and scene data, will produce an image in the form of a repa array.
 render :: Settings -> Scene -> Array V DIM2 Colour
 render settings@(Settings w h s rand gim) (Scene os view) = mkArray $ runEval $ do
     obs <- rpar $ mkObStruct os
@@ -93,29 +68,24 @@ render settings@(Settings w h s rand gim) (Scene os view) = mkArray $ runEval $ 
     where
         mkArray = fromListVector (Z :. h :. w)
 
--- Using monad Par
---render :: Settings -> Scene -> Array V DIM2 Colour
---render settings@(Settings w h s rand gim) (Scene os view) = mkArray $ (flip evalRender rand) $ sequence $ runPar $ do
---    parMapChunk 8 (traceSamples obs) sampleRays
---    where
---        obs = mkObStruct os
---        sampleRays = makeCameraRays settings view -- [[Ray]]
---        mkArray ps = fromListVector (Z :. h :. w) ps
-
+-- Take a random generator and split it across several states.
 splitGen :: Int -> PureMT -> [RState]
 splitGen 0 _ = []
 splitGen n rand = map (\r -> RState (pureMT r) 1) $ take n $ randoms rand
 
+-- Trace all the samples of a pixel and collect the results.
 traceSamples :: ObjectStructure -> [Ray] -> Render Colour
 traceSamples objs !rs = do
     colours <- mapM (fmap reflected . trace objs) rs
     return $ scale (1/fromIntegral (length rs)) (mconcat colours)
 
+-- Trace a single sample.
 trace :: ObjectStructure -> Ray -> Render (BSDF Colour)
 trace objs ray = do
     traced <- traceFun objs ray
     return $ maybe holdout (\(_, _, bsdf, _) -> bsdf) traced
 
+-- The core tracing function. Passed to material system for recursive calls.
 traceFun :: ObjectStructure -> Ray -> Render (Maybe (Scalar, Intersection, BSDF Colour, Bool))
 traceFun objs r = do
     case closestIntersectObStruct objs r of 
@@ -132,6 +102,7 @@ traceFun objs r = do
         lights = filter emissiveShape $ getAll objs
         getOmega i light = normalize (center light `sub` ipos i) -- TODO: Needs to be random direction
 
+-- Calculate the indirect lighting component.
 getGI :: ObjectStructure -> Intersection -> Colour -> Render (BSDF Colour)
 getGI objs i@(Intersection {ipos, inorm}) direct
     | True || maxComponent > 0 = do
@@ -148,7 +119,7 @@ getGI objs i@(Intersection {ipos, inorm}) direct
         identity = pure $ pure 1
 
 
--- | Render action to generate a random direction (for global illumination sample).
+-- Generate a random direction (for global illumination sample).
 getRandomRay :: Intersection -> Render Ray
 getRandomRay (Intersection {ipos, inorm}) = do
     r1 <- fmap (2*pi*) $ getRandomR (0, 1)

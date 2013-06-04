@@ -11,6 +11,8 @@ maintainer:          Tom Savage
 category:            Graphics
 build-type:          Simple
 cabal-version:       >=1.8
+synopsis:            Purely functional ray tracer
+description:         Something something dark side
 
 -- Build flags
 -- With Cabal, use: --flags=-debug
@@ -28,6 +30,8 @@ library
   exposed-modules:
     HaskRay
     HaskRay.Geometry
+    HaskRay.Material
+    HaskRay.Vector
   other-modules:
     HaskRay.Geometry.BoundingBox
     --HaskRay.Geometry.Mesh
@@ -36,21 +40,17 @@ library
     HaskRay.Ray
     HaskRay.Geometry.Sphere
     HaskRay.Geometry.Util
-    HaskRay.Material
     HaskRay.Monad
     HaskRay.Octree
     HaskRay.Out
     HaskRay.Projection
     HaskRay.Scene
     HaskRay.Settings
-    HaskRay.Vector
     HaskRay.Vector.Advanced
   build-depends:       base ==4.6.*, bytestring, split >=0.2.0.0, parallel ==3.2.*, random, mersenne-random-pure64, transformers, MonadRandom, containers, time, deepseq, repa, repa-io <= 3.2.2.201204.1, bmp ==1.2.3.4, binary, monad-par
   hs-source-dirs:      src
   if flag(debug)
     ghc-options:         -fforce-recomp
---  else
---    ghc-options:         -fwarn-type-defaults -fwarn-monomorphism-restriction -fwarn-incomplete-patterns -fwarn-overlapping-patterns -fwarn-unused-imports -fwarn-unused-binds -fwarn-missing-signatures
 
 executable haskray
   main-is:             Main.hs
