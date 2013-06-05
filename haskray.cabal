@@ -20,10 +20,6 @@ description:         This package was orignally an academic exercise chosen as a
 -- With Cabal, use: --flags=-debug
 -- With Cabal-dev, use: --cabal-install-arg=--flags=-debug
 
-flag criterion-benchmarks
-  description:         Build Criterion benchmark program
-  default:             False
-
 flag debug
   description:         Turn on profiling, stack traces on exceptions
   default:             False
@@ -69,22 +65,3 @@ test-suite properties
   main-is: properties.hs
   build-depends: base, QuickCheck
   hs-source-dirs: testsuite, src
-
-executable haskray-benchmarks
-  main-is:             Benchmarks.hs
-  hs-source-dirs:      benchmarks
-  ghc-options:         -threaded -eventlog -rtsopts -O2
-  if flag(criterion-benchmarks)
-    build-depends:
-      base ==4.5.*,
-      HaskRay,
-      split ==0.1.*,
-      parallel ==3.2.*,
-      random,
-      mtl,
-      MonadRandom,
-      containers,
-      time,
-      criterion
-  else
-    buildable: False
