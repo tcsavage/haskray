@@ -13,6 +13,8 @@ build-type:          Simple
 cabal-version:       >=1.8
 synopsis:            Purely functional ray tracer
 description:         This package was orignally an academic exercise chosen as an undergraduate final year project. The software has since been optimised, modified and extended with additional features. It is now a long-term pet project and research platform; not intended for serious use, but fun to tinker with.
+                     .
+                     Usage: @haskray -w WIDTH -h HEIGHT -s SAMPLECOUNT -o OUTPUT@
 
 -- Build flags
 -- With Cabal, use: --flags=-debug
