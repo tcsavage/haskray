@@ -1,0 +1,1 @@
+cabal-dev\bin\haskray.exe -w 853 -h 480 -s 10 -o test.bmp +RTS -lsf -s

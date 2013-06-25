@@ -1,4 +1,4 @@
-{-# LANGUAGE Arrows, NamedFieldPuns, FlexibleInstances, OverlappingInstances #-}
+{-# LANGUAGE Arrows, NamedFieldPuns, FlexibleInstances, OverlappingInstances, DeriveFunctor #-}
 
 module HaskRay.Material
 (
@@ -98,13 +98,7 @@ data Intersection = Intersection { ipos :: !Vec3, inorm :: !Vec3, iray :: !Ray }
 {-|
 When perameterised over 'Colour', BSDFs are a record of the light reflected and transmitted from a specific point on a surface. They can however contain any other type so that more complicated computations can be performed on them.
 -}
-data BSDF a = BSDF { reflected :: !a, transmitted :: !a } deriving (Show, Read, Eq)
-
-{-
-BSDFs are a functor. The function is applied to the reflected pert and and transmitted part.
--}
-instance Functor BSDF where
-    fmap f (BSDF { reflected, transmitted }) = BSDF { reflected = f reflected, transmitted = f transmitted }
+data BSDF a = BSDF { reflected :: !a, transmitted :: !a } deriving (Show, Read, Eq, Functor)
 
 {-
 BSDFs are also Applicatve functors. The function in each component is applied to it's matching component.
@@ -117,8 +111,8 @@ instance Applicative BSDF where
 BSDFs form a Monoid under holdout and the addition of each component.
 -}
 instance (Vector v, Num c) => Monoid (BSDF (v c)) where
-    mempty = BSDF { reflected = vzero, transmitted = vzero }
-    BSDF ref1 trans1 `mappend` BSDF ref2 trans2 = BSDF { reflected = ref1 `add` ref2, transmitted = trans1 `add` trans2 }
+    mempty = pure vzero
+    l `mappend` r = add <$> l <*> r
 
 -- | The identity BSDF.
 holdout :: BSDF Colour
