@@ -15,7 +15,7 @@ module HaskRay.Geometry,
 -- * Material
 Colour,
 Material(..),
-BSDF(..),
+Scattering(..),
 Texture,
 loadTexture,
 diffuse,
@@ -82,22 +82,22 @@ traceSamples objs !rs = do
     return $ scale (1/fromIntegral (length rs)) (mconcat colours)
 
 -- Trace a single sample.
-trace :: ObjectStructure -> Ray -> Render (BSDF Colour)
+trace :: ObjectStructure -> Ray -> Render (Scattering Colour)
 trace objs ray = do
     traced <- traceFun objs ray
-    return $ maybe holdout (\(_, _, bsdf, _) -> bsdf) traced
+    return $ maybe holdout (\(_, _, scattering, _) -> scattering) traced
 
 -- The core tracing function. Passed to material system for recursive calls.
-traceFun :: ObjectStructure -> Ray -> Render (Maybe (Scalar, Intersection, BSDF Colour, Bool))
+traceFun :: ObjectStructure -> Ray -> Render (Maybe (Scalar, Intersection, Scattering Colour, Bool))
 traceFun objs r = do
     case closestIntersectObStruct objs r of 
         Nothing -> return Nothing
         (Just (d, i@(Intersection {ipos}), mat)) -> do
-            bsdfs <- forM lights $ \l -> do
+            scatterings <- forM lights $ \l -> do
                 ldir <- randomSampleDir l ipos
                 --let ldir = getOmega i l
                 evalMaterial mat (traceFun objs) i ldir
-            let direct = mconcat bsdfs
+            let direct = mconcat scatterings
             --gi <- withReducedDepth (return holdout) $ getGI objs i (reflected direct)
             return $! Just (d, i, scale (1/fromIntegral (length lights)) `fmap` (direct), isEmissive mat)
     where
@@ -105,7 +105,7 @@ traceFun objs r = do
         getOmega i light = normalize (center light `sub` ipos i) -- TODO: Needs to be random direction
 
 -- Calculate the indirect lighting component.
-getGI :: ObjectStructure -> Intersection -> Colour -> Render (BSDF Colour)
+getGI :: ObjectStructure -> Intersection -> Colour -> Render (Scattering Colour)
 getGI objs i@(Intersection {ipos, inorm}) direct
     | True || maxComponent > 0 = do
         r <- getRandomR (0, 1)
@@ -113,7 +113,7 @@ getGI objs i@(Intersection {ipos, inorm}) direct
             True -> do
                 ray <- getRandomRay i
                 gi <- trace objs ray
-                return $ BSDF (scale 0.2) (const vzero) <*> gi
+                return $ Scattering (scale 0.2) (const vzero) <*> gi
             False -> return identity
     | otherwise = return identity
     where

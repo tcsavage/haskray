@@ -18,7 +18,7 @@ data MaterialDSL = Holdout
                  | Emissive
                  deriving (Show, Read, Eq)
 
-translateDSL :: MaterialDSL -> Material () (BSDF Colour)
+translateDSL :: MaterialDSL -> Material () (Scattering Colour)
 translateDSL Holdout = arr $ \ () -> holdout
 translateDSL (Diffuse col) = diffuseM col
 translateDSL Emissive = emissiveM
@@ -27,15 +27,15 @@ makeFunction :: Material a b -> a -> Material () b
 makeFunction m x = proc () -> do
     m -< x
 
-diffuseM :: Colour -> Material () (BSDF Colour)
+diffuseM :: Colour -> Material () (Scattering Colour)
 diffuseM = makeFunction diffuse
 
-emissiveM :: Material () (BSDF Colour)
+emissiveM :: Material () (Scattering Colour)
 emissiveM = proc () -> do
     out <- emissive -< (Vector3 1 1 1, 100)
     returnA -< out
 
-showNormalM :: Material () (BSDF Colour)
+showNormalM :: Material () (Scattering Colour)
 showNormalM = makeFunction showNormal ()
 
 testObjects :: Texture -> [Shape]

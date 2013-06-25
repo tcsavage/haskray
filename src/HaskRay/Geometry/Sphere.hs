@@ -21,7 +21,7 @@ Defines a mathematical sphere.
 -}
 data Sphere = Sphere !Vec3 !Scalar deriving (Show, Read, Eq)
 
-mkSphereShape :: Sphere -> Material () (BSDF Colour) -> Shape
+mkSphereShape :: Sphere -> Material () (Scattering Colour) -> Shape
 mkSphereShape s m = Shape { intersect = intersect s m, center = center s, boundingBox = boundingBox s, mapTexture = mapTexture s, emissiveShape = isEmissive m, randomSampleDir = randomSampleDir s }
     where
         intersect s@(Sphere center rad) material ray@(Ray origin dir) = is

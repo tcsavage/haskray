@@ -9,7 +9,7 @@ gammaCorrect,
 Material(..),
 evalMaterial,
 Intersection(..),
-BSDF(..),
+Scattering(..),
 Texture,
 loadTexture,
 indexTextureUV,
@@ -96,40 +96,40 @@ indexTextureUV tex (Vector2 u v)
 data Intersection = Intersection { ipos :: !Vec3, inorm :: !Vec3, iray :: !Ray }
 
 {-|
-When perameterised over 'Colour', BSDFs are a record of the light reflected and transmitted from a specific point on a surface. They can however contain any other type so that more complicated computations can be performed on them.
+When perameterised over 'Colour', scatterings are a record of the light reflected and transmitted from a specific point on a surface. They can however contain any other type so that more complicated computations can be performed on them.
 -}
-data BSDF a = BSDF { reflected :: !a, transmitted :: !a } deriving (Show, Read, Eq, Functor)
+data Scattering a = Scattering { reflected :: !a, transmitted :: !a } deriving (Show, Read, Eq, Functor)
 
 {-
-BSDFs are also Applicatve functors. The function in each component is applied to it's matching component.
+Scatterings are also Applicatve functors. The function in each component is applied to it's matching component.
 -}
-instance Applicative BSDF where
-    pure x = BSDF { reflected = x, transmitted = x }
-    fs <*> xs = BSDF { reflected = reflected fs $ reflected xs, transmitted = transmitted fs $ transmitted xs }
+instance Applicative Scattering where
+    pure x = Scattering { reflected = x, transmitted = x }
+    fs <*> xs = Scattering { reflected = reflected fs $ reflected xs, transmitted = transmitted fs $ transmitted xs }
 
 {-
-BSDFs form a Monoid under holdout and the addition of each component.
+Scatterings form a Monoid under holdout and the addition of each component.
 -}
-instance (Vector v, Num c) => Monoid (BSDF (v c)) where
+instance (Vector v, Num c) => Monoid (Scattering (v c)) where
     mempty = pure vzero
     l `mappend` r = add <$> l <*> r
 
--- | The identity BSDF.
-holdout :: BSDF Colour
+-- | The identity Scattering.
+holdout :: Scattering Colour
 holdout = mempty
 
 {-|
 Materials are a description of how to calculate a final BRDF for a given incident light vector. The 'Material' type is really a material function. Material functions can be composed to produce more complicated materials. In order to track which materials emit light, there is an 'isEmissive' flag which is maintained by the primitive functions and operators. This can be queried to find the set of emissive materials to use for lighting.
 
-A full material which can be assigned to a 'Shape' and used by the renderer must have type @Material () (BSDF Colour)@.
+A full material which can be assigned to a 'Shape' and used by the renderer must have type @Material () (Scattering Colour)@.
 -}
 data Material a b = Material {
     isEmissive :: !Bool,
-    closure :: a -> (Ray -> Render (Maybe (Scalar, Intersection, BSDF Colour, Bool))) -> Intersection -> Vec3 -> Render b
+    closure :: a -> (Ray -> Render (Maybe (Scalar, Intersection, Scattering Colour, Bool))) -> Intersection -> Vec3 -> Render b
 }
 
 -- | A more constrained version of 'closure' which only accepts full materials, and returns an action on the 'Render' monad.
-evalMaterial :: Material () (BSDF a) -> (Ray -> Render (Maybe (Scalar, Intersection, BSDF Colour, Bool))) -> Intersection -> Vec3 -> Render (BSDF a)
+evalMaterial :: Material () (Scattering a) -> (Ray -> Render (Maybe (Scalar, Intersection, Scattering Colour, Bool))) -> Intersection -> Vec3 -> Render (Scattering a)
 evalMaterial mat = closure mat ()
 
 {-
@@ -171,8 +171,8 @@ randomRA = Material False $ \range _ _ _ -> getRandomR range
 --traceA :: Material (Ray, Scalar) Bool
 --traceA = Material False $ \(ray, maxdist) trace _ _ rand -> (maybe False (\(dist,_,_,_) -> dist <= maxdist) $ trace ray, rand)
 
--- | Access to the renderer trace function. Returns Nothing if no intersection, or returns Just a BSDF if there was (in which case a recursive call back into the material system is made).
-traceM :: Material Ray (Maybe (Scalar, Intersection, BSDF Colour, Bool))
+-- | Access to the renderer trace function. Returns Nothing if no intersection, or returns Just a Scattering if there was (in which case a recursive call back into the material system is made).
+traceM :: Material Ray (Maybe (Scalar, Intersection, Scattering Colour, Bool))
 traceM = Material False $ \ray trace _ _ -> trace ray
 
 -- Version of sequence for arrows. 
@@ -188,18 +188,18 @@ mapArr :: Arrow a => (b -> a d c) -> [b] -> a d [c]
 mapArr f = sequenceArr . map f
 
 -- | Simple material which renders a flat colour without shading or shadows.
-shadeless :: Material Colour (BSDF Colour)
+shadeless :: Material Colour (Scattering Colour)
 shadeless = arr $ \col -> holdout { reflected = col }
 
 -- | Displays colour representation of surface normal.
-showNormal :: Material () (BSDF Colour)
+showNormal :: Material () (Scattering Colour)
 showNormal = proc _ -> do
     i <- getIntersection -< ()
     returnA -< holdout { reflected = fmap ((/2) . (+1)) (inorm i) }
 
 
 -- Simple diffuse shading without shadows.
-diffuseShading :: Material Colour (BSDF Colour)
+diffuseShading :: Material Colour (Scattering Colour)
 diffuseShading = Material False fun
     where
         fun col _ (Intersection {inorm}) om_i = return $ holdout { reflected = ref }
@@ -207,23 +207,23 @@ diffuseShading = Material False fun
                 ref = scale (max 0 (om_i `dot` inorm)) col
 
 -- | Primitive material which renders a colour with shading and shadows.
-diffuse :: Material Colour (BSDF Colour)
+diffuse :: Material Colour (Scattering Colour)
 diffuse = proc col -> do
     out <- diffuseShading -< col                                              -- Get diffuse shading
     shad <- traceM <<< getIncidentRay -< ()                                   -- Test path to light
-    returnA -< maybe holdout (\(_,_,_,e) -> if e then out else holdout) shad  -- Set BSDF to black if in shadow
+    returnA -< maybe holdout (\(_,_,_,e) -> if e then out else holdout) shad  -- Set Scattering to black if in shadow
 
 -- | Primitive emissive material.
-emissive :: Material (Colour, Scalar) (BSDF Colour)
+emissive :: Material (Colour, Scalar) (Scattering Colour)
 emissive = Material True $ \(col, power) _ _ _ -> return $ holdout { reflected = power `scale` col }
 
 -- | Primitive reflective material.
-mirror :: Material () (BSDF Colour)
+mirror :: Material () (Scattering Colour)
 mirror = proc () -> do
     (Intersection {ipos, inorm, iray}) <- getIntersection -< ()
     traced <- traceM -< Ray ipos $ rdir iray `sub` scale (2 * (inorm `dot` rdir iray)) inorm
-    returnA -< maybe holdout (\(_,_,bsdf,_) -> bsdf) traced
+    returnA -< maybe holdout (\(_,_,scattering,_) -> scattering) traced
 
--- | Primitive material function which adds two BSDFs together.
-addShader :: Material (BSDF Colour, BSDF Colour) (BSDF Colour)
+-- | Primitive material function which adds two Scatterings together.
+addShader :: Material (Scattering Colour, Scattering Colour) (Scattering Colour)
 addShader = arr $ uncurry (<>)

@@ -20,7 +20,7 @@ import Data.List (minimumBy)
 -- | Something renderable.
 data Shape = Shape {
     -- | Find a list of intersections (and distances) between a ray and a shape.
-    intersect :: Ray -> Maybe (Scalar, Intersection, Material () (BSDF Colour)),
+    intersect :: Ray -> Maybe (Scalar, Intersection, Material () (Scattering Colour)),
     -- | Gets the center of the shape.
     center :: Vec3,
     -- | Calculates the axially-aligned bounding box of the shape.
@@ -34,7 +34,7 @@ data Shape = Shape {
 }
 
 -- | Find closest intersection with a list of 'Object's.
-closestIntersect :: [Shape] -> Ray -> Maybe (Scalar, Intersection, Material () (BSDF Colour))
+closestIntersect :: [Shape] -> Ray -> Maybe (Scalar, Intersection, Material () (Scattering Colour))
 closestIntersect [] _ = Nothing
 closestIntersect shapes r = closestIntersection $ mapMaybe (`intersect` r) shapes
 
@@ -47,6 +47,6 @@ boundShapes os = BoundingBox ev1 ev2
         (ev1, ev2) = minmaxPoints bbs
 
 -- | Grabs the intersection with the shortest distance.
-closestIntersection :: [(Scalar, Intersection, Material () (BSDF Colour))] -> Maybe (Scalar, Intersection, Material () (BSDF Colour))
+closestIntersection :: [(Scalar, Intersection, Material () (Scattering Colour))] -> Maybe (Scalar, Intersection, Material () (Scattering Colour))
 closestIntersection [] = Nothing
 closestIntersection is = Just $ minimumBy (\(d1,_,_) (d2,_,_) -> compare d1 d2) is

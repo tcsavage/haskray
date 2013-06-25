@@ -17,7 +17,7 @@ Defines an infinite plane.
 -}
 data Plane = Plane !Vec3 !Scalar deriving (Show, Read, Eq)
 
-mkPlaneShape :: Plane -> Material () (BSDF Colour) -> Shape
+mkPlaneShape :: Plane -> Material () (Scattering Colour) -> Shape
 mkPlaneShape p m = Shape { intersect = intersect p m, center = center p, boundingBox = Nothing, mapTexture = mapTexture p, emissiveShape = isEmissive m, randomSampleDir = randomSampleDir p }
     where
         intersect s@(Plane normal d) material ray@(Ray origin dir)

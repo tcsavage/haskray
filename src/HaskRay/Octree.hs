@@ -33,7 +33,7 @@ data Octree = Leaf !Vec3 !Scalar ![Shape]
 type ObjectStructure = ([Shape], Octree, [Shape])
 
 -- | Find closest intersection in object structure.
-closestIntersectObStruct :: ObjectStructure -> Ray -> Maybe (Scalar, Intersection, Material () (BSDF Colour))
+closestIntersectObStruct :: ObjectStructure -> Ray -> Maybe (Scalar, Intersection, Material () (Scattering Colour))
 closestIntersectObStruct (inf, oct, _) ray = closest closestInf closestFin
     where
         closest Nothing x = x
@@ -133,5 +133,5 @@ getAll :: ObjectStructure -> [Shape]
 getAll (_, _, os) = os
 
 -- | Find the closest intersection with an object structure.
-closestIntersectOct :: Octree -> Ray -> Maybe (Scalar, Intersection, Material () (BSDF Colour))
+closestIntersectOct :: Octree -> Ray -> Maybe (Scalar, Intersection, Material () (Scattering Colour))
 closestIntersectOct octree ray = closestIntersect (filterObsByIntersection octree ray) ray
