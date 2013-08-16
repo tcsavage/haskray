@@ -21,11 +21,14 @@ loadTexture,
 diffuse,
 emissive,
 mirror,
+transmissive,
 shadeless,
 showNormal,
 getIncidentRay,
 traceM,
 holdout,
+addShader,
+mix,
 -- * Vectors
 module HaskRay.Vector,
 -- * Image Ouput
@@ -73,7 +76,7 @@ render settings@(Settings w h s rand gim) (Scene os view) = mkArray $ runEval $ 
 -- Take a random generator and split it across several states.
 splitGen :: Int -> PureMT -> [RState]
 splitGen 0 _ = []
-splitGen n rand = map (\r -> RState (pureMT r) 1) $ take n $ randoms rand
+splitGen n rand = map (\r -> RState (pureMT r) 5) $ take n $ randoms rand
 
 -- Trace all the samples of a pixel and collect the results.
 traceSamples :: ObjectStructure -> [Ray] -> Render Colour
@@ -89,7 +92,7 @@ trace objs ray = do
 
 -- The core tracing function. Passed to material system for recursive calls.
 traceFun :: ObjectStructure -> Ray -> Render (Maybe (Scalar, Intersection, Scattering Colour, Bool))
-traceFun objs r = do
+traceFun objs r = withReducedDepth (return Nothing) $ do
     case closestIntersectObStruct objs r of 
         Nothing -> return Nothing
         (Just (d, i@(Intersection {ipos}), mat)) -> do

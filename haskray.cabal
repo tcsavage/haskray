@@ -45,7 +45,7 @@ library
     HaskRay.Scene
     HaskRay.Settings
     HaskRay.Vector.Advanced
-  build-depends:       base ==4.6.*, bytestring, split >=0.2.0.0, parallel ==3.2.*, random, mersenne-random-pure64, transformers, MonadRandom, containers, time, deepseq, repa, repa-io <= 3.2.2.201204.1, bmp ==1.2.3.4, binary, monad-par
+  build-depends:       base ==4.6.*, bytestring, split >=0.2.0.0, parallel ==3.2.*, random, mersenne-random-pure64, transformers, MonadRandom, containers, time, deepseq, repa, repa-io <= 3.2.2.201204.1, bmp ==1.2.3.4, binary, monad-par, profunctors
   hs-source-dirs:      src
   if flag(debug)
     ghc-options:         -fforce-recomp

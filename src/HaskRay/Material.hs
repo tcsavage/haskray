@@ -1,4 +1,4 @@
-{-# LANGUAGE Arrows, NamedFieldPuns, FlexibleInstances, OverlappingInstances, DeriveFunctor #-}
+{-# LANGUAGE Arrows, NamedFieldPuns, FlexibleInstances, OverlappingInstances, DeriveFunctor, DoAndIfThenElse #-}
 
 module HaskRay.Material
 (
@@ -16,11 +16,14 @@ indexTextureUV,
 diffuse,
 emissive,
 mirror,
+transmissive,
 shadeless,
 showNormal,
 getIncidentRay,
 traceM,
 holdout,
+addShader,
+mix,
 sequenceArr,
 mapArr
 ) where
@@ -35,6 +38,7 @@ import Prelude hiding (id, (.))
 import Control.Monad.Instances ()
 import Data.Maybe
 import Data.Monoid
+import Data.Profunctor
 import Control.Applicative hiding (empty)
 import qualified Data.Array.Repa as R
 import Data.Array.Repa (Array, Z(..), DIM2, (:.)(..))
@@ -150,6 +154,27 @@ instance Arrow Material where
         r1 <- cl x1 trace int om_i
         return (r1, x2)
 
+{-
+It's useful to have conditional statements in material definitions. Hence we need an instance for ArrowChoice.
+-}
+instance ArrowChoice Material where
+    left (Material im cl) = Material im inner
+        where
+            inner (Left x) trace int om_i = fmap Left $ cl x trace int om_i
+            inner (Right x) _ _ _ = return $ Right x
+
+{-
+Not technically necessary but possibly useful to have.
+-}
+instance Functor (Material a) where
+    fmap f m = arr f . m
+
+{-
+Generalisation of a "back and forth" transformation. Combines a contravariant and covariant functor.
+-}
+instance Profunctor Material where
+    dimap f g m = arr g . m . arr f
+
 -- | A utility function which extracts the raw intersection value.
 getIntersection :: Material () Intersection
 getIntersection = Material False $ \() _ int _ -> return int
@@ -158,6 +183,10 @@ getIntersection = Material False $ \() _ int _ -> return int
 getIncidentRay :: Material () Ray
 getIncidentRay = Material False $ \() _ (Intersection {ipos}) om_i -> return $ Ray ipos om_i
 
+-- | Lift a `Render` computation into a material.
+liftRender :: Render a -> Material () a
+liftRender a = Material False $ \() _ _ _ -> a
+
 -- Internal use only. Get raw rendom generator.
 getRandA :: Material () PureMT
 getRandA = Material False $ \() _ _ _ -> getRand
@@ -165,7 +194,6 @@ getRandA = Material False $ \() _ _ _ -> getRand
 -- | Generate a random value within a specified range.
 randomRA :: Random r => Material (r, r) r
 randomRA = Material False $ \range _ _ _ -> getRandomR range
-
 
 -- Simple trace test.
 --traceA :: Material (Ray, Scalar) Bool
@@ -220,10 +248,47 @@ emissive = Material True $ \(col, power) _ _ _ -> return $ holdout { reflected =
 -- | Primitive reflective material.
 mirror :: Material () (Scattering Colour)
 mirror = proc () -> do
-    (Intersection {ipos, inorm, iray}) <- getIntersection -< ()
-    traced <- traceM -< Ray ipos $ rdir iray `sub` scale (2 * (inorm `dot` rdir iray)) inorm
-    returnA -< maybe holdout (\(_,_,scattering,_) -> scattering) traced
+    maxDepth <- liftRender atMaxDepth -< ()
+    if maxDepth
+    then returnA -< holdout
+    else do
+        (Intersection {ipos, inorm, iray}) <- getIntersection -< ()
+        traced <- traceM -< Ray ipos $ rdir iray `sub` scale (2 * (inorm `dot` rdir iray)) inorm
+        returnA -< maybe holdout (\(_,_,scattering,_) -> scattering) traced
+
+--traceTransmission :: Int -> Intersection -> Object -> Render Sample
+--traceTransmission depth int@(Intersection norm point (Ray _ dir) (Transmissive i m)) ob = do
+--    samp <- maybe (return Background) (traceSample (depth-1)) mray2
+--    ref <- traceReflection (depth-1) int
+--    return $ Refraction samp ref m
+--    where
+--        refract nout nin norm _ dir = normalize $ (scale (nout/nin) (scale (dir `dot` norm) norm) `add` dir) `sub` scale (sqrt (1-((nout**2)*(1-(dir `dot` norm)**2)/(nin**2)))) norm
+--        r1 = refract 1.0 i norm point dir
+--        ray1 = Ray point r1
+--        mray2 = do
+--            (_, Intersection norm point (Ray _ dir) (Transmissive i _)) <- intersectOb ray1 ob
+--            return $ Ray point $ refract i 1.0 norm point dir
+
+transmissive :: Material (Scalar, Scalar) (Scattering Colour)
+transmissive = proc (i, m) -> do
+    (Intersection point norm (Ray _ dir)) <- getIntersection -< ()
+    let refract nout nin norm _ dir = normalize $ (scale (nout/nin) (scale (dir `dot` norm) norm) `add` dir) `sub` scale (sqrt (1-((nout**2)*(1-(dir `dot` norm)**2)/(nin**2)))) norm
+    let r1 = refract 1.00029 i norm point dir
+    let ray1 = Ray point r1
+    traced1 <- traceM -< ray1
+    let mray2 = do
+        (_, Intersection point norm (Ray _ dir), _, _) <- traced1
+        return $ Ray point $ refract i 1.00029 norm point dir
+    traced2 <- traceM -< fromJust mray2
+    returnA -< maybe (pure $ pure 1) (\(_,_,scattering,_) -> scattering) traced2
 
 -- | Primitive material function which adds two Scatterings together.
 addShader :: Material (Scattering Colour, Scattering Colour) (Scattering Colour)
 addShader = arr $ uncurry (<>)
+
+mix :: Scalar -> Material (Scattering Colour, Scattering Colour) (Scattering Colour)
+mix r = proc (s1, s2) -> do
+    let ri = 1-r
+    let s1' = (scale r) <$> s1
+    let s2' = (scale ri) <$> s2
+    addShader -< (s1', s2')

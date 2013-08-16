@@ -4,6 +4,7 @@ module HaskRay.Monad
 (RState(..)
 ,Render
 ,getRand
+,atMaxDepth
 ,withReducedDepth
 ,evalRender
 ,runRender
@@ -44,6 +45,10 @@ getDepth = depth <$> get
 -- Internal.
 setDepth :: Int -> Render ()
 setDepth depth' = modify $ \state -> state { depth = depth' }
+
+-- | Is the render operating at it's maximum allowed depth?
+atMaxDepth :: Render Bool
+atMaxDepth = fmap (==0) getDepth
 
 -- | Perform an action one level down in depth - with a default if already at max depth.
 withReducedDepth :: Render a -- ^ Default action

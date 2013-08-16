@@ -24,8 +24,7 @@ translateDSL (Diffuse col) = diffuseM col
 translateDSL Emissive = emissiveM
 
 makeFunction :: Material a b -> a -> Material () b
-makeFunction m x = proc () -> do
-    m -< x
+makeFunction m x = proc () -> m -< x
 
 diffuseM :: Colour -> Material () (Scattering Colour)
 diffuseM = makeFunction diffuse
@@ -35,8 +34,24 @@ emissiveM = proc () -> do
     out <- emissive -< (Vector3 1 1 1, 100)
     returnA -< out
 
+transmissiveM :: (Scalar, Scalar) -> Material () (Scattering Colour)
+transmissiveM = makeFunction transmissive
+
 showNormalM :: Material () (Scattering Colour)
 showNormalM = makeFunction showNormal ()
+
+dirtyMirror :: Material () (Scattering Colour)
+dirtyMirror = proc () -> do
+    d <- diffuse -< Vector3 0.8 0.8 0.8
+    m <- mirror -< ()
+    mix 0.5 -< (d, m)
+
+-- Adds a subtle reflection to pure transmission.
+glass :: Material () (Scattering Colour)
+glass = proc () -> do
+    m <- mirror -< ()
+    t <- transmissive -< (1.5, 0.9)
+    mix 0.2 -< (m, t)
 
 testObjects :: Texture -> [Shape]
 testObjects tex = [mkPlaneShape (Plane (normalize (Vector3 0 (-1) 0)) 5) (diffuseM (Vector3 0.8 0.8 0.8))
@@ -44,8 +59,8 @@ testObjects tex = [mkPlaneShape (Plane (normalize (Vector3 0 (-1) 0)) 5) (diffus
         ,mkPlaneShape (Plane (normalize (Vector3 1 0 0)) (14)) (diffuseM (Vector3 0.8 0 0))
         ,mkPlaneShape (Plane (normalize (Vector3 (-1) 0 0)) (14)) (diffuseM (Vector3 0 0.8 0))
         ,mkPlaneShape (Plane (normalize (Vector3 0 0 (-1))) (18)) (diffuseM (Vector3 0.8 0.8 0.8))
-        --,mkSphereShape (Sphere (Vector3 1 1 1) 3) (Transmissive 1.05 0.9)
-        --,mkSphereShape (Sphere (Vector3 5 1 10) 4) mirror
+        ,mkSphereShape (Sphere (Vector3 1 1 1) 3) glass
+        ,mkSphereShape (Sphere (Vector3 5 1 10) 4) dirtyMirror
         ,mkSphereShape (Sphere (Vector3 (-8) 0 8) 5) (diffuseM (Vector3 0 1 0))
         --,mkSphereShape (Sphere (Vector3 (-8) 0 8) 5) (Shaded $ Textured tex)
         ,mkSphereShape (Sphere (Vector3 8 3 4) 2) (diffuseM (Vector3 1 0 0))
